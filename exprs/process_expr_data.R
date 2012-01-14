@@ -4,6 +4,7 @@
 #Notes about the datasets:
 #GSE8786 - Raw data good, text format
 #GSE8839 - appears to be corrupted (some columns shifted in raw data)
+            #*Emailing GEO, ignore this dataset for now
 #GSE9331 - Raw data good, genepix file format (!) (.gpr)
           #It's 3 different platforms, and 4921 says channel 1 is cy5.
           #Need to check this later to see if just entry error in GEO
@@ -22,8 +23,60 @@ setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs")
 #My laptop wd
 setwd("~/schoolDB/Dropbox/thesis_work/data/exprs")
 
+
+##########################
+
+#  GSE8786
+
+##########################
+
+#First, need to create Targets frame for use in the read.maimages func
+
+#Pull info from the GEO repository so we can get annotations for each array
+dir.create("./GS8786")
+g.8786.geo <- getGEO("GSE8786", destdir="./") #Downloads the soft files
+g.8786.pheno <- phenoData(g.8786.geo[[1]]) #Gets phenotype data
+g.8786.pdata <- pData(g.8786.pheno) #Dataframe of all data associated with arrays
+
+#Pull the file names out of the pData dataframe, need to process the strings a
+#bit because they point to the ftp path to download, we only care about file name
+g.8786.fnames <- as.character(g.8786.pdata$supplementary_file)
+g.8786.fnames <- sapply(g.8786.fnames, 
+                        function(x) {strsplit(x, "/", fixed=T)[[1]][11]},
+                        USE.NAMES=F
+                        )
+
+#Get the GEO accessions for each array to use as an ID
+g.8786.arraynames <- as.character(g.8786.pdata$geo_accession)
+
+#Get the treatments for each array
+g.8786.treatment <- as.character(g.8786.pdata$description.1)
+
+#Function to parse out the treatment from the description
+text_to_label <- function(row){
+  if (grepl("Control", row, fixed=T)){
+    row.split <- strsplit(row, " ", fixed=T)
+    n.days <- row.split[[1]][8]
+    label <- paste("Control", n.days, "days", sep="." )
+    return(label)
+  }
+  else {
+    row.split <- strsplit(row, " ", fixed=T)
+    n.days <- row.split[[1]][17]
+    label <- paste("Wayne", n.days, "days", sep=".")
+    return(label)
+  }
+}
+
+g.8786.treatment <- sapply(g.8786.treatment, text_to_label, USE.NAMES=F)
+
+g.8786.targets <- data.frame(Name=g.8786.arraynames,
+                             FileName=g.8786.fnames,
+                             Cy3 = rep("control", length(g.8786.fnames)),
+                             Cy5 = g.8786.treatment)
+
+
 ##Set the column IDs for reading each dataset into the limma object
-#GSE8786
 #column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
 g.8786.cols <- list(R="Ch2 Intensity (Mean)", G="Ch1 Intensity (Mean)",
                     Rb="Ch2 Background (Median)", Gb="Ch1 Background (Median)")
