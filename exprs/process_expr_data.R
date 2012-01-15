@@ -21,7 +21,7 @@ library(limma)
 #At OHSU wd
 setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs")
 #My laptop wd
-setwd("~/schoolDB/Dropbox/thesis_work/data/exprs")
+setwd("~/schoolDB/Dropbox/thesis_work/data/exprs/GSE8786/")
 
 
 ##########################
@@ -70,16 +70,49 @@ text_to_label <- function(row){
 
 g.8786.treatment <- sapply(g.8786.treatment, text_to_label, USE.NAMES=F)
 
-g.8786.targets <- data.frame(Name=g.8786.arraynames,
-                             FileName=g.8786.fnames,
+g.8786.targets <- data.frame(FileName=g.8786.fnames,
                              Cy3 = rep("control", length(g.8786.fnames)),
                              Cy5 = g.8786.treatment)
 
+rownames(g.8786.targets) <- g.8786.arraynames
 
 ##Set the column IDs for reading each dataset into the limma object
 #column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
 g.8786.cols <- list(R="Ch2 Intensity (Mean)", G="Ch1 Intensity (Mean)",
                     Rb="Ch2 Background (Median)", Gb="Ch1 Background (Median)")
+
+g.8786.rg <- read.maimages(g.8786.targets, columns=g.8786.cols,
+                           annotation=c("Sector", "X Grid Coordinate (within sector)",
+                                        "Y Grid Coordinate (within sector)", 
+                                        "Spot", "Name"),
+                           path="./GSE8786_RAW")
+colnames(g.8786.rg$genes) <- c("Block", "Row", "Column", "Spot", "Name")
+
+##Now that the data is read in, do some QA/QC
+dir.create("../QA/prenormMA")
+plotMA3by2(g.8786.rg, path="../QA/prenormMA")
+
+#Normalize the arrays
+g.8786.bc <- backgroundCorrect(g.8786.rg, method="normexp", offset=50)
+g.8786.MA <- normalizeWithinArrays(g.8786.rg, method="loess")
+g.8786.MAq <- normalizeBetweenArrays(g.8786.rg, method="Aquantile")
+
+
+#QA plots to see if normalization worked
+setwd("./QA")
+png("uncorrected_densities.png")
+plotDensities(g.8786.rg)
+dev.off()
+
+png("corrected_densities.png")
+plotDensities(g.8786.MA)
+dev.off()
+
+plotDensities(g.8786.MAq)
+
+dir.create("./postnormMA")
+plotMA3by2(g.8786.MA, path="./postnormMA")
+
 
 
 #GEO IDs for the five datasets
