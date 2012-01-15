@@ -129,3 +129,23 @@ plotDensities(g.8786.bc.norm.rv)
 dev.off()
 
 plotDensities(g.8786.MAq.rv)
+
+################
+#
+# Begin differential expression analysis
+#
+################
+
+#all arrays
+fit <- lmFit(g.8786.bc.norm.rv)
+fit <- eBayes(fit)
+topTable(fit)
+
+#just wayne growth arrays
+g.8786.wayne.idx <- grepl("Wayne", g.8786.targets$Cy5, fixed=T)
+g.8786.bc.norm.rv.wayne <- g.8786.bc.norm.rv[, g.8786.wayne.idx]
+
+fit.wayne <- lmFit(g.8786.bc.norm.rv.wayne)
+fit.wayne <- eBayes(fit.wayne)
+topTable(fit.wayne)
+
