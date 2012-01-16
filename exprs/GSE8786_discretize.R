@@ -120,8 +120,8 @@ sum(g.8786.rv.idx) #3924 genes represented
 g.8786.bc.norm.rv <- g.8786.bc.norm[g.8786.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
-dir.create("./postnormMA_RVfiltered")
-plotMA3by2(g.8786.bc.norm.rv, path="./postnormMA_RVfiltered")
+dir.create("./QA/postnormMA_RVfiltered")
+plotMA3by2(g.8786.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -165,3 +165,7 @@ vec.discret <- function(vec){
 
 g.8786.disc <- data.frame(lapply(g.8786.rv.treat.M, vec.discret),
                           row.names = rownames(g.8786.rv.treat.M))
+
+save(g.8786.disc, file="../GSE8786_disc.RData")
+save(g.8786.rv.treat.M, file="../GSE8786_M.RData")
+
