@@ -1,5 +1,11 @@
-#Script to download the supplementary files (raw data) for 5 GEO datasets 
-#that will be used to build the PMN.
+#Script for GSE8786 that:
+# 1 - download and import the raw intensities from 2-dye arrays
+# 2 - QA on the raw intensities
+# 3 - Background correct and normalize the intensities
+# 4 - QA on corrected and normalized intensities
+# 5 - Discretize ratios to {-1, 0 1} for the treatment arrays
+
+# Written by Joe Reistetter
 
 #Notes about the datasets:
 #GSE8786 - Raw data good, text format
@@ -68,6 +74,7 @@ text_to_label <- function(row){
   }
 }
 
+#use the filter function to assign treatments
 g.8786.treatment <- sapply(g.8786.treatment, text_to_label, USE.NAMES=F)
 
 
@@ -84,28 +91,26 @@ rownames(g.8786.targets) <- g.8786.arraynames
 g.8786.cols <- list(R="Ch2 Intensity (Mean)", G="Ch1 Intensity (Mean)",
                     Rb="Ch2 Background (Median)", Gb="Ch1 Background (Median)")
 
+#Read in the raw intensities. Note that the annotation will be used later
+#in the background correction and normalization
+#and correspond to Block ,row, and column.
 g.8786.rg <- read.maimages(g.8786.targets, columns=g.8786.cols,
-                           annotation=c("Sector", "X Grid Coordinate (within sector)",
+                           annotation=c("Sector", 
+                                        "X Grid Coordinate (within sector)",
                                         "Y Grid Coordinate (within sector)", 
                                         "Spot", "Name"),
                            path="./GSE8786_RAW")
 colnames(g.8786.rg$genes) <- c("Block", "Row", "Column", "Spot", "Name")
 
+#Generate a Layout object for the background correction and normalization
 g.8786.rg$printer <- getLayout(g.8786.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./QA/prenormMA")
 plotMA3by2(g.8786.rg, path="./QA/prenormMA")
 
-
-
-#The filtered helped remove some of the artifacts, but some odd
-#patterns (diagonal lines fanning out from the lower left quadrant
-#of the plots)
-
 #Normalize the arrays, may have to remove some if the artifacts remain
 g.8786.bc <- backgroundCorrect(g.8786.rg, method="normexp", offset=50)
-g.8786.bc.norm <- normalizeWithinArrays(g.8786.bc)
 g.8786.bc.norm <- normalizeWithinArrays(g.8786.bc, method="loess")
 
 #Need to filter so that only RV genes are present
@@ -128,24 +133,35 @@ png("corrected_densities.png")
 plotDensities(g.8786.bc.norm.rv)
 dev.off()
 
-plotDensities(g.8786.MAq.rv)
-
 ################
 #
-# Begin differential expression analysis
+# Begin discretizing values
 #
 ################
 
-#all arrays
-fit <- lmFit(g.8786.bc.norm.rv)
-fit <- eBayes(fit)
-topTable(fit)
+##Extract log-2 expression ratios and discretize
 
-#just wayne growth arrays
+#Subset to include only treatment arrays, only genes
 g.8786.wayne.idx <- grepl("Wayne", g.8786.targets$Cy5, fixed=T)
 g.8786.bc.norm.rv.wayne <- g.8786.bc.norm.rv[, g.8786.wayne.idx]
 
-fit.wayne <- lmFit(g.8786.bc.norm.rv.wayne)
-fit.wayne <- eBayes(fit.wayne)
-topTable(fit.wayne)
+g.8786.rv.treat.M <- as.data.frame(g.8786.bc.norm.rv.wayne$M)
+row.names(g.8786.rv.treat.M) <- g.8786.bc.norm.rv.wayne$genes$Name
 
+discretizer <- function(val){
+  if(val >= 1){
+    return(1)
+  }
+  
+  if(val <= -1){
+    return (-1)
+  }
+  return(0)
+}
+
+vec.discret <- function(vec){
+  return(sapply(vec, discretizer, USE.NAMES=F))
+}
+
+g.8786.disc <- data.frame(lapply(g.8786.rv.treat.M, vec.discret),
+                          row.names = rownames(g.8786.rv.treat.M))
