@@ -144,6 +144,16 @@ vec.discret <- function(vec){
 
 gpl.4291.disc <- data.frame(lapply(gpl.4291.rv.M, vec.discret))
 
+##Need to reverse the sign of arrays where the control was Cy5
+gpl.4291.ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
+gpl.4291.ch2_Cy3.arrays <- as.character(gpl.4291.pdata$geo_accession[ch2_Cy3.idx])
+gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.disc) %in% gpl.4291.ch2_Cy3.arrays)
+
+for (idx in gpl.4291.ch2_Cy3.idx){
+  gpl.4291.disc[,idx] <- -1 * gpl.4291.disc[,idx]
+}
+
+
 #######
 # 
 # GPL 4293
@@ -241,7 +251,29 @@ dev.off()
 ##Extract log-2 expression ratios and discretize
 
 gpl.4293.rv.M <- as.data.frame(gpl.4293.bc.norm.rv$M)
+gpl.4293.rv.M$gene <- gpl.4293.bc.norm.rv$genes$Name
 row.names(gpl.4293.rv.M) <- gpl.4293.bc.norm.rv$genes$Name
+
+avg_probes <- function(df, gene_ids){
+  #initialize aatafame to hold results
+  avg_df <- as.data.frame(
+    matrix(nrow=length(gene_ids), ncol=ncol(df)-1) 
+    )
+  avg_df$gene <- ""
+  
+  i = 1
+  for (gene in gene_ids){
+    probes <- df[which(df$gene == gene),]
+    probe_avg <- unlist(lapply(probes[,1:(ncol(df)-1)], function(x){sum(x)/length(x)}))
+    avg_df[i,1:(ncol(df)-1)] <- probe_avg
+    avg_df[i,]$gene <- gene
+    
+    i = i+1
+  }
+  colnames(avg_df) <- colnames(df)
+  return(avg_df)
+  
+}
 
 discretizer <- function(val){
   if(val >= 1){
