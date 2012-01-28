@@ -141,5 +141,123 @@ vec.discret <- function(vec){
 
 gpl.4291.disc <- data.frame(lapply(gpl.4291.rv.M, vec.discret))
 
+#######
+# 
+# GPL 4293
+#
+#######
+
+gpl.4293 <- g.9331.geo[["GSE9331-GPL4293_series_matrix.txt.gz"]]
+gpl.4293.pheno <- phenoData(gpl.4293) #Gets phenotype data
+gpl.4293.pdata <- pData(gpl.4293.pheno) #Dataframe of all data associated with arrays
+
+#Pull the file names out of the pData dataframe, need to process the strings a
+#bit because they point to the ftp path to download, we only care about file name
+gpl.4293.fnames <- as.character(gpl.4293.pdata$supplementary_file)
+gpl.4293.fnames <- sapply(gpl.4293.fnames, 
+                        function(x) {strsplit(x, "/", fixed=T)[[1]][11]},
+                        USE.NAMES=F
+                        )
+
+#Get the GEO accessions for each array to use as an ID
+gpl.4293.arraynames <- as.character(gpl.4293.pdata$geo_accession)
+
+#Get the treatments for each array
+gpl.4293.treatment <- as.character(gpl.4293.pdata$source_name_ch2)
+
+#All the data is in the correct format, build it into a dataframe
+#that fits the specs for input into the read.maimages function.
+gpl.4293.targets <- data.frame(FileName=gpl.4293.fnames,
+                             Cy3 = rep("control", length(gpl.4293.fnames)),
+                             Cy5 = gpl.4293.treatment, stringsAsFactors=F)
+
+rownames(gpl.4293.targets) <- gpl.4293.arraynames
+
+#Initial attempts at reading in the images threw errors on multiple arrays.
+#Inspection of the files shows they are corrupted in some way.
+#Exclude from targets dataframe.
+dim(gpl.4293.targets) #38 x 3
+bad.arrays <- c("GSM237638.gpr.gz", "GSM237639.gpr.gz", 
+                "GSM237640.gpr.gz", "GSM237641.gpr.gz",
+                "GSM237642.gpr.gz", "GSM237647.gpr.gz",
+                "GSM237648.gpr.gz")
+bad.idx <- which(gpl.4293.targets$FileName %in% bad.arrays)
+gpl.4293.targets <- gpl.4293.targets[-bad.idx,]
+dim(gpl.4293.targets) #31x3, 7 arrays removed successfully
+
+
+##Set the column IDs for reading each dataset into the limma object
+#column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
+gpl.4293.cols <- list(R="F635 Mean", G="F532 Mean",
+                    Rb="B635 Median", Gb="B532 Median")
+
+gpl.4293.rg <- read.maimages(gpl.4293.targets,
+                             source="genepix",
+                             columns=gpl.4293.cols,
+                             path="./GSE9331_RAW")
+
+#Generate a Layout object for the background correction and normalization
+gpl.4293.rg$printer <- getLayout(gpl.4293.rg$genes)
+
+##Now that the data is read in, do some QA/QC by looking at MA plots
+dir.create("./QA")
+dir.create("./QA/prenormMA")
+plotMA3by2(gpl.4293.rg, path="./QA/prenormMA")
+
+
+#Normalize the arrays, may have to remove some if the artifacts remain
+gpl.4293.bc <- backgroundCorrect(gpl.4293.rg, method="normexp", offset=50)
+gpl.4293.bc.norm <- normalizeWithinArrays(gpl.4293.bc, method="loess")
+
+#Need to filter so that only RV genes are present
+gpl.4293.rv.idx <- grepl(pattern="Rv", x=gpl.4293.rg$genes$Name, fixed=T)
+sum(gpl.4293.rv.idx) #16068 genes represented
+gpl.4293.bc.norm.rv <- gpl.4293.bc.norm[gpl.4293.rv.idx,]
+
+#Realizing that there are multiple spots for each gene. Will need to average
+#the ratios or deal with it in some way.
+
+#Redo the MA plots and see if artifacts disappear
+dir.create("./QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.4293.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+
+#QA plots to see if normalization worked
+setwd("./QA")
+png("uncorrected_densities.png")
+plotDensities(gpl.4293.rg)
+dev.off()
+
+png("corrected_densities.png")
+plotDensities(gpl.4293.bc.norm.rv)
+dev.off()
+
+
+################
+#
+# Begin discretizing values
+#
+################
+
+##Extract log-2 expression ratios and discretize
+
+gpl.4293.rv.M <- as.data.frame(gpl.4293.bc.norm.rv$M)
+row.names(gpl.4293.rv.M) <- gpl.4293.bc.norm.rv$genes$Name
+
+discretizer <- function(val){
+  if(val >= 1){
+    return(1)
+  }
+  
+  if(val <= -1){
+    return (-1)
+  }
+  return(0)
+}
+
+vec.discret <- function(vec){
+  return(sapply(vec, discretizer, USE.NAMES=F))
+}
+
+gpl.4293.disc <- data.frame(lapply(gpl.4293.rv.M, vec.discret))
 
 
