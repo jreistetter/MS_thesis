@@ -7,19 +7,6 @@
 
 # Written by Joe Reistetter
 
-#Notes about the datasets:
-#GSE8786 - Raw data good, text format
-#GSE8839 - appears to be corrupted (some columns shifted in raw data)
-            #*Emailing GEO, ignore this dataset for now
-#GSE9331 - Raw data good, genepix file format (!) (.gpr)
-          #It's 3 different platforms, and 4921 says channel 1 is cy5.
-          #Need to check this later to see if just entry error in GEO
-          #gpl4291 ch1 = cy5 = red
-          #gpl4293 ch1 = cy3 = green
-          #gpl5774 ch1 = cy3 = green
-#GSE10391 - Raw data good, text format
-#GSE16146 - get softfile via getGEO, raw data not available separately
-
 
 library(GEOquery)
 library(limma)
