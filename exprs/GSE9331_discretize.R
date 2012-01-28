@@ -7,6 +7,9 @@
 
 # Written by Joe Reistetter
 
+##TODO
+##4291 has the reference as Cy5 for some samples
+
 library(GEOquery)
 library(limma)
 
@@ -176,14 +179,11 @@ rownames(gpl.4293.targets) <- gpl.4293.arraynames
 #Initial attempts at reading in the images threw errors on multiple arrays.
 #Inspection of the files shows they are corrupted in some way.
 #Exclude from targets dataframe.
-dim(gpl.4293.targets) #38 x 3
-bad.arrays <- c("GSM237638.gpr.gz", "GSM237639.gpr.gz", 
-                "GSM237640.gpr.gz", "GSM237641.gpr.gz",
-                "GSM237642.gpr.gz", "GSM237647.gpr.gz",
-                "GSM237648.gpr.gz")
+dim(gpl.4293.targets) #12 x 3
+bad.arrays <- c("GSM237676.gpr.gz")
 bad.idx <- which(gpl.4293.targets$FileName %in% bad.arrays)
 gpl.4293.targets <- gpl.4293.targets[-bad.idx,]
-dim(gpl.4293.targets) #31x3, 7 arrays removed successfully
+dim(gpl.4293.targets) #1x3, 1 arrays removed successfully
 
 
 ##Set the column IDs for reading each dataset into the limma object
@@ -200,9 +200,8 @@ gpl.4293.rg <- read.maimages(gpl.4293.targets,
 gpl.4293.rg$printer <- getLayout(gpl.4293.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
-dir.create("./QA")
-dir.create("./QA/prenormMA")
-plotMA3by2(gpl.4293.rg, path="./QA/prenormMA")
+dir.create("./GPL4293/QA/prenormMA", recursive=T)
+plotMA3by2(gpl.4293.rg, path="./GPL4293/QA/prenormMA")
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -211,18 +210,19 @@ gpl.4293.bc.norm <- normalizeWithinArrays(gpl.4293.bc, method="loess")
 
 #Need to filter so that only RV genes are present
 gpl.4293.rv.idx <- grepl(pattern="Rv", x=gpl.4293.rg$genes$Name, fixed=T)
-sum(gpl.4293.rv.idx) #16068 genes represented
+sum(gpl.4293.rv.idx) #24,126 probes
+length(unique(gpl.4293.bc.norm.rv$genes$Name)) #3900 genes
 gpl.4293.bc.norm.rv <- gpl.4293.bc.norm[gpl.4293.rv.idx,]
 
 #Realizing that there are multiple spots for each gene. Will need to average
 #the ratios or deal with it in some way.
 
 #Redo the MA plots and see if artifacts disappear
-dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4293.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+dir.create("./GPL4293/QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.4293.bc.norm.rv, path="./GPL4293/QA/postnormMA_RVfiltered")
 
 #QA plots to see if normalization worked
-setwd("./QA")
+setwd("./GPL4293/QA")
 png("uncorrected_densities.png")
 plotDensities(gpl.4293.rg)
 dev.off()
