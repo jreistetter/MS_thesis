@@ -13,10 +13,13 @@
 library(GEOquery)
 library(limma)
 
-#At OHSU wd
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs/GSE9331")
-#My laptop wd
-setwd("~/schoolDB/Dropbox/thesis_work/data/exprs/GSE9331/")
+#At OHSU Dropbox
+#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/)
+#My laptop Dropbox
+setwd("~/schoolDB/Dropbox/thesis_work")
+source("./code/exprs/exprs_funcs.R")
+
+setwd("./data/exprs/GSE9331")
 
 #First, need to create Targets frame for use in the read.maimages func
 
@@ -95,7 +98,8 @@ gpl.4291.bc.norm <- normalizeWithinArrays(gpl.4291.bc, method="loess")
 
 #Need to filter so that only RV genes are present
 gpl.4291.rv.idx <- grepl(pattern="Rv", x=gpl.4291.rg$genes$Name, fixed=T)
-sum(gpl.4291.rv.idx) #16068 genes represented
+sum(gpl.4291.rv.idx) #16,068 features represented
+length(unique(gpl.4291.rg$genes$Name)) #4595 genes
 gpl.4291.bc.norm.rv <- gpl.4291.bc.norm[gpl.4291.rv.idx,]
 
 #Realizing that there are multiple spots for each gene. Will need to average
@@ -125,27 +129,14 @@ dev.off()
 ##Extract log-2 expression ratios and discretize
 
 gpl.4291.rv.M <- as.data.frame(gpl.4291.bc.norm.rv$M)
-row.names(gpl.4291.rv.M) <- gpl.4291.bc.norm.rv$genes$Name
+gpl.4291.rv.M$gene <- gpl.4291.bc.norm.rv$genes$Name
+gpl.4291.gene_ids <- unique(gpl.4291.rv.M$gene)
+gpl.4291.M.avg <- avg_probes(gpl.4291.rv.M, gpl.4291.gene_ids)
 
-discretizer <- function(val){
-  if(val >= 1){
-    return(1)
-  }
-  
-  if(val <= -1){
-    return (-1)
-  }
-  return(0)
-}
-
-vec.discret <- function(vec){
-  return(sapply(vec, discretizer, USE.NAMES=F))
-}
-
-gpl.4291.disc <- data.frame(lapply(gpl.4291.rv.M, vec.discret))
+gpl.4291.disc <- discretize(gpl.4291.M.avg)
 
 ##Need to reverse the sign of arrays where the control was Cy5
-gpl.4291.ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
+ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
 gpl.4291.ch2_Cy3.arrays <- as.character(gpl.4291.pdata$geo_accession[ch2_Cy3.idx])
 gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.disc) %in% gpl.4291.ch2_Cy3.arrays)
 
@@ -252,44 +243,9 @@ dev.off()
 
 gpl.4293.rv.M <- as.data.frame(gpl.4293.bc.norm.rv$M)
 gpl.4293.rv.M$gene <- gpl.4293.bc.norm.rv$genes$Name
-row.names(gpl.4293.rv.M) <- gpl.4293.bc.norm.rv$genes$Name
+gpl.4293.gene_ids <- unique(gpl.4293.rv.M$gene)
+gpl.4293.M.avg <- avg_probes(gpl.4293.rv.M, gpl.4293.gene_ids)
 
-avg_probes <- function(df, gene_ids){
-  #initialize aatafame to hold results
-  avg_df <- as.data.frame(
-    matrix(nrow=length(gene_ids), ncol=ncol(df)-1) 
-    )
-  avg_df$gene <- ""
-  
-  i = 1
-  for (gene in gene_ids){
-    probes <- df[which(df$gene == gene),]
-    probe_avg <- unlist(lapply(probes[,1:(ncol(df)-1)], function(x){sum(x)/length(x)}))
-    avg_df[i,1:(ncol(df)-1)] <- probe_avg
-    avg_df[i,]$gene <- gene
-    
-    i = i+1
-  }
-  colnames(avg_df) <- colnames(df)
-  return(avg_df)
-  
-}
-
-discretizer <- function(val){
-  if(val >= 1){
-    return(1)
-  }
-  
-  if(val <= -1){
-    return (-1)
-  }
-  return(0)
-}
-
-vec.discret <- function(vec){
-  return(sapply(vec, discretizer, USE.NAMES=F))
-}
-
-gpl.4293.disc <- data.frame(lapply(gpl.4293.rv.M, vec.discret))
+gpl.4293.disc <- discretize(gpl.4293.M.avg)
 
 
