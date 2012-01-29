@@ -43,5 +43,7 @@ vec.discret <- function(vec){
 }
 
 discretize <- function(df){
-  data.frame(lapply(df, vec.discret))
+  disc.df <- data.frame(lapply(df, vec.discret))
+  rownames(disc.df) <- rownames(df)
+  return(disc.df)
 }
