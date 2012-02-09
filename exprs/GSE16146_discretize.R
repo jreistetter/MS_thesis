@@ -31,6 +31,13 @@ g.16146.geo.matrix <- getGEO("GSE16146", destdir="./")
 #Get a list of the array objects
 g.16146.gsm <- GSMList(g.16146.geo)
 
+#load platform data
+gpl.8523 <- g.16146.geo.matrix[["GSE16146-GPL8523_series_matrix.txt.gz"]]
+gpl.8523.pheno <- phenoData(gpl.8523) #Gets phenotype data
+gpl.8523.pdata <- pData(gpl.8523.pheno) #Dataframe of all data associated with arrays
+
+gpl.8523.annot <- featureData(gpl.8523)@data
+
 #Function to pull out the data table and save as text
 save_table <- function(gsm){
   dat <- Table(gsm@dataTable)
@@ -49,15 +56,12 @@ lapply(g.16146.gsm, save_table)
 
 #This dataset has 3 different platforms, so work with each separately
 setwd("..")
+
 #######
 # 
 # GPL 8523
 #
 #######
-
-gpl.8523 <- g.16146.geo.matrix[["GSE16146-GPL8523_series_matrix.txt.gz"]]
-gpl.8523.pheno <- phenoData(gpl.8523) #Gets phenotype data
-gpl.8523.pdata <- pData(gpl.8523.pheno) #Dataframe of all data associated with arrays
 
 #Pull the file names out of the pData dataframe, need to process the strings a
 #bit because they point to the ftp path to download, we only care about file name
@@ -81,18 +85,6 @@ gpl.8523.targets <- data.frame(FileName=gpl.8523.fnames,
 
 rownames(gpl.8523.targets) <- gpl.8523.arraynames
 
-#Initial attempts at reading in the images threw errors on multiple arrays.
-#Inspection of the files shows they are corrupted in some way.
-#Exclude from targets dataframe.
-dim(gpl.8523.targets) #38 x 3
-bad.arrays <- c("GSM237638.gpr.gz", "GSM237639.gpr.gz", 
-                "GSM237640.gpr.gz", "GSM237641.gpr.gz",
-                "GSM237642.gpr.gz", "GSM237647.gpr.gz",
-                "GSM237648.gpr.gz")
-bad.idx <- which(gpl.8523.targets$FileName %in% bad.arrays)
-gpl.8523.targets <- gpl.8523.targets[-bad.idx,]
-dim(gpl.8523.targets) #31x3, 7 arrays removed successfully
-
 
 ##Set the column IDs for reading each dataset into the limma object
 #column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
@@ -100,17 +92,23 @@ gpl.8523.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
                     Rb="CH2B_MEDIAN", Gb="CH1B_MEDIAN")
 
 gpl.8523.rg <- read.maimages(gpl.8523.targets,
-                             source="genepix",
+                             annotation=c("ID_REF"),
                              columns=gpl.8523.cols,
                              path="./GSE16146_RAW")
 
+gpl.8523.gal <- readGAL("SMD_print_745.gal")
+colnames(gpl.8523.gal)[5] <- "Reporter.Name"
 #Generate a Layout object for the background correction and normalization
-gpl.8523.rg$printer <- getLayout(gpl.8523.rg$genes)
+gpl.8523.rg$genes <- merge(gpl.8523.annot, gpl.8523.rg$genes, by.x = "ID", by.y="ID_REF", all.y=T)
+#gpl.8523.rg$printer <- getLayout(gpl.8523.rg$genes)
+gpl.8523.rg$printer <- getLayout(gpl.8523.gal)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
+dir.create("./GPL8523")
+setwd("./GPL8523")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.8523.rg, path="./QA/prenormMA")
+plotMA3by2(gpl.8523.rg, path="./QA/prenormMA", main=gpl.8523.targets$Cy5)
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -118,14 +116,13 @@ gpl.8523.bc <- backgroundCorrect(gpl.8523.rg, method="normexp", offset=50)
 gpl.8523.bc.norm <- normalizeWithinArrays(gpl.8523.bc, method="loess")
 
 #Need to filter so that only RV genes are present
-gpl.8523.rv.idx <- grepl(pattern="Rv", x=gpl.8523.rg$genes$Name, fixed=T)
+gpl.8523.rv.idx <- grepl(pattern="RV", x=gpl.8523.rg$genes$ORF, fixed=T)
 sum(gpl.8523.rv.idx) #16,068 features represented
 gpl.8523.bc.norm.rv <- gpl.8523.bc.norm[gpl.8523.rv.idx,]
-length(unique(gpl.8523.bc.norm.rv$genes$Name)) #4595 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.8523.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.8523.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.8523.targets$Cy5)
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -147,20 +144,8 @@ dev.off()
 ##Extract log-2 expression ratios and discretize
 
 gpl.8523.rv.M <- as.data.frame(gpl.8523.bc.norm.rv$M)
-gpl.8523.rv.M$gene <- gpl.8523.bc.norm.rv$genes$Name
-gpl.8523.gene_ids <- unique(gpl.8523.rv.M$gene)
-gpl.8523.M.avg <- avg_probes(gpl.8523.rv.M, gpl.8523.gene_ids)
-
-gpl.8523.disc <- discretize(gpl.8523.M.avg)
-
-##Need to reverse the sign of arrays where the control was Cy5
-ch2_Cy3.idx <- which(gpl.8523.pdata$label_ch2 == "Cy3")
-gpl.8523.ch2_Cy3.arrays <- as.character(gpl.8523.pdata$geo_accession[ch2_Cy3.idx])
-gpl.8523.ch2_Cy3.idx <- which(colnames(gpl.8523.disc) %in% gpl.8523.ch2_Cy3.arrays)
-
-for (idx in gpl.8523.ch2_Cy3.idx){
-  gpl.8523.disc[,idx] <- -1 * gpl.8523.disc[,idx]
-}
+gpl.8523.disc <- discretize(gpl.8523.rv.M)
+gpl.8523.disc$gene <- gpl.8523.bc.norm.rv$genes$ORF
 
 
 #######
