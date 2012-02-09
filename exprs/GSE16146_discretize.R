@@ -1,4 +1,4 @@
-#Script for GSE9331 that:
+#Script for GSE16146 that:
 # 1 - download and import the raw intensities from 2-dye arrays
 # 2 - QA on the raw intensities
 # 3 - Background correct and normalize the intensities
@@ -8,112 +8,133 @@
 # Written by Joe Reistetter
 
 ##TODO
-##4291 has the reference as Cy5 for some samples
+##8523 has the reference as Cy5 for some samples
 
 library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/)
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
 #My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work")
+#setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
-setwd("./data/exprs/GSE9331")
+setwd("./data/exprs/GSE16146")
 
 #First, need to create Targets frame for use in the read.maimages func
 
 #Pull info from the GEO repository so we can get annotations for each array
-g.9331.geo <- getGEO("GSE9331", destdir="./") #Downloads the soft files
+g.16146.geo <- getGEO("GSE16146", destdir="./", GSEMatrix=F) #Downloads the soft files
+g.16146.geo.matrix <- getGEO("GSE16146", destdir="./")
+
+#Need to pull out the data table for each array and save as .txt for use in read.maimages
+#Get a list of the array objects
+g.16146.gsm <- GSMList(g.16146.geo)
+
+#Function to pull out the data table and save as text
+save_table <- function(gsm){
+  dat <- Table(gsm@dataTable)
+  accession <- gsm@header$geo_accession
+  fname <- paste(accession, ".txt", sep="")
+  write.table(dat, file=fname, sep="\t", quote=F, col.names=T, row.names=F)
+  
+}
+
+dir.create("./GSE16146_RAW")
+setwd("./GSE16146_RAW")
+
+#Save out to text
+lapply(g.16146.gsm, save_table)
+
 
 #This dataset has 3 different platforms, so work with each separately
-
+setwd("..")
 #######
 # 
-# GPL 4291
+# GPL 8523
 #
 #######
 
-gpl.4291 <- g.9331.geo[["GSE9331-GPL4291_series_matrix.txt.gz"]]
-gpl.4291.pheno <- phenoData(gpl.4291) #Gets phenotype data
-gpl.4291.pdata <- pData(gpl.4291.pheno) #Dataframe of all data associated with arrays
+gpl.8523 <- g.16146.geo.matrix[["GSE16146-GPL8523_series_matrix.txt.gz"]]
+gpl.8523.pheno <- phenoData(gpl.8523) #Gets phenotype data
+gpl.8523.pdata <- pData(gpl.8523.pheno) #Dataframe of all data associated with arrays
 
 #Pull the file names out of the pData dataframe, need to process the strings a
 #bit because they point to the ftp path to download, we only care about file name
-gpl.4291.fnames <- as.character(gpl.4291.pdata$supplementary_file)
-gpl.4291.fnames <- sapply(gpl.4291.fnames, 
-                        function(x) {strsplit(x, "/", fixed=T)[[1]][11]},
+gpl.8523.fnames <- rownames(gpl.8523.pdata)
+gpl.8523.fnames <- sapply(gpl.8523.fnames, 
+                        function(x) {paste(x, ".txt", sep="")},
                         USE.NAMES=F
                         )
 
 #Get the GEO accessions for each array to use as an ID
-gpl.4291.arraynames <- as.character(gpl.4291.pdata$geo_accession)
+gpl.8523.arraynames <- rownames(gpl.8523.pdata)
 
 #Get the treatments for each array
-gpl.4291.treatment <- as.character(gpl.4291.pdata$source_name_ch2)
+gpl.8523.treatment <- as.character(gpl.8523.pdata$source_name_ch2)
 
 #All the data is in the correct format, build it into a dataframe
 #that fits the specs for input into the read.maimages function.
-gpl.4291.targets <- data.frame(FileName=gpl.4291.fnames,
-                             Cy3 = rep("control", length(gpl.4291.fnames)),
-                             Cy5 = gpl.4291.treatment, stringsAsFactors=F)
+gpl.8523.targets <- data.frame(FileName=gpl.8523.fnames,
+                             Cy3 = rep("control", length(gpl.8523.fnames)),
+                             Cy5 = gpl.8523.treatment, stringsAsFactors=F)
 
-rownames(gpl.4291.targets) <- gpl.4291.arraynames
+rownames(gpl.8523.targets) <- gpl.8523.arraynames
 
 #Initial attempts at reading in the images threw errors on multiple arrays.
 #Inspection of the files shows they are corrupted in some way.
 #Exclude from targets dataframe.
-dim(gpl.4291.targets) #38 x 3
+dim(gpl.8523.targets) #38 x 3
 bad.arrays <- c("GSM237638.gpr.gz", "GSM237639.gpr.gz", 
                 "GSM237640.gpr.gz", "GSM237641.gpr.gz",
                 "GSM237642.gpr.gz", "GSM237647.gpr.gz",
                 "GSM237648.gpr.gz")
-bad.idx <- which(gpl.4291.targets$FileName %in% bad.arrays)
-gpl.4291.targets <- gpl.4291.targets[-bad.idx,]
-dim(gpl.4291.targets) #31x3, 7 arrays removed successfully
+bad.idx <- which(gpl.8523.targets$FileName %in% bad.arrays)
+gpl.8523.targets <- gpl.8523.targets[-bad.idx,]
+dim(gpl.8523.targets) #31x3, 7 arrays removed successfully
 
 
 ##Set the column IDs for reading each dataset into the limma object
 #column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
-gpl.4291.cols <- list(R="F635 Mean", G="F532 Mean",
-                    Rb="B635 Median", Gb="B532 Median")
+gpl.8523.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
+                    Rb="CH2B_MEDIAN", Gb="CH1B_MEDIAN")
 
-gpl.4291.rg <- read.maimages(gpl.4291.targets,
+gpl.8523.rg <- read.maimages(gpl.8523.targets,
                              source="genepix",
-                             columns=gpl.4291.cols,
-                             path="./GSE9331_RAW")
+                             columns=gpl.8523.cols,
+                             path="./GSE16146_RAW")
 
 #Generate a Layout object for the background correction and normalization
-gpl.4291.rg$printer <- getLayout(gpl.4291.rg$genes)
+gpl.8523.rg$printer <- getLayout(gpl.8523.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.4291.rg, path="./QA/prenormMA")
+plotMA3by2(gpl.8523.rg, path="./QA/prenormMA")
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
-gpl.4291.bc <- backgroundCorrect(gpl.4291.rg, method="normexp", offset=50)
-gpl.4291.bc.norm <- normalizeWithinArrays(gpl.4291.bc, method="loess")
+gpl.8523.bc <- backgroundCorrect(gpl.8523.rg, method="normexp", offset=50)
+gpl.8523.bc.norm <- normalizeWithinArrays(gpl.8523.bc, method="loess")
 
 #Need to filter so that only RV genes are present
-gpl.4291.rv.idx <- grepl(pattern="Rv", x=gpl.4291.rg$genes$Name, fixed=T)
-sum(gpl.4291.rv.idx) #16,068 features represented
-gpl.4291.bc.norm.rv <- gpl.4291.bc.norm[gpl.4291.rv.idx,]
-length(unique(gpl.4291.bc.norm.rv$genes$Name)) #4595 genes
+gpl.8523.rv.idx <- grepl(pattern="Rv", x=gpl.8523.rg$genes$Name, fixed=T)
+sum(gpl.8523.rv.idx) #16,068 features represented
+gpl.8523.bc.norm.rv <- gpl.8523.bc.norm[gpl.8523.rv.idx,]
+length(unique(gpl.8523.bc.norm.rv$genes$Name)) #4595 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.8523.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
 
 #QA plots to see if normalization worked
 setwd("./QA")
 png("uncorrected_densities.png")
-plotDensities(gpl.4291.rg)
+plotDensities(gpl.8523.rg)
 dev.off()
 
 png("corrected_densities.png")
-plotDensities(gpl.4291.bc.norm.rv)
+plotDensities(gpl.8523.bc.norm.rv)
 dev.off()
 
 
@@ -125,20 +146,20 @@ dev.off()
 
 ##Extract log-2 expression ratios and discretize
 
-gpl.4291.rv.M <- as.data.frame(gpl.4291.bc.norm.rv$M)
-gpl.4291.rv.M$gene <- gpl.4291.bc.norm.rv$genes$Name
-gpl.4291.gene_ids <- unique(gpl.4291.rv.M$gene)
-gpl.4291.M.avg <- avg_probes(gpl.4291.rv.M, gpl.4291.gene_ids)
+gpl.8523.rv.M <- as.data.frame(gpl.8523.bc.norm.rv$M)
+gpl.8523.rv.M$gene <- gpl.8523.bc.norm.rv$genes$Name
+gpl.8523.gene_ids <- unique(gpl.8523.rv.M$gene)
+gpl.8523.M.avg <- avg_probes(gpl.8523.rv.M, gpl.8523.gene_ids)
 
-gpl.4291.disc <- discretize(gpl.4291.M.avg)
+gpl.8523.disc <- discretize(gpl.8523.M.avg)
 
 ##Need to reverse the sign of arrays where the control was Cy5
-ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
-gpl.4291.ch2_Cy3.arrays <- as.character(gpl.4291.pdata$geo_accession[ch2_Cy3.idx])
-gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.disc) %in% gpl.4291.ch2_Cy3.arrays)
+ch2_Cy3.idx <- which(gpl.8523.pdata$label_ch2 == "Cy3")
+gpl.8523.ch2_Cy3.arrays <- as.character(gpl.8523.pdata$geo_accession[ch2_Cy3.idx])
+gpl.8523.ch2_Cy3.idx <- which(colnames(gpl.8523.disc) %in% gpl.8523.ch2_Cy3.arrays)
 
-for (idx in gpl.4291.ch2_Cy3.idx){
-  gpl.4291.disc[,idx] <- -1 * gpl.4291.disc[,idx]
+for (idx in gpl.8523.ch2_Cy3.idx){
+  gpl.8523.disc[,idx] <- -1 * gpl.8523.disc[,idx]
 }
 
 
@@ -148,7 +169,7 @@ for (idx in gpl.4291.ch2_Cy3.idx){
 #
 #######
 
-gpl.4293 <- g.9331.geo[["GSE9331-GPL4293_series_matrix.txt.gz"]]
+gpl.4293 <- g.16146.geo[["GSE16146-GPL4293_series_matrix.txt.gz"]]
 gpl.4293.pheno <- phenoData(gpl.4293) #Gets phenotype data
 gpl.4293.pdata <- pData(gpl.4293.pheno) #Dataframe of all data associated with arrays
 
@@ -192,7 +213,7 @@ gpl.4293.cols <- list(R="F635 Mean", G="F532 Mean",
 gpl.4293.rg <- read.maimages(gpl.4293.targets,
                              source="genepix",
                              columns=gpl.4293.cols,
-                             path="./GSE9331_RAW")
+                             path="./GSE16146_RAW")
 
 #Generate a Layout object for the background correction and normalization
 gpl.4293.rg$printer <- getLayout(gpl.4293.rg$genes)
@@ -252,7 +273,7 @@ gpl.4293.disc <- discretize(gpl.4293.M.avg)
 #
 #######
 
-gpl.5774 <- g.9331.geo[["GSE9331-GPL5774_series_matrix.txt.gz"]]
+gpl.5774 <- g.16146.geo[["GSE16146-GPL5774_series_matrix.txt.gz"]]
 gpl.5774.pheno <- phenoData(gpl.5774) #Gets phenotype data
 gpl.5774.pdata <- pData(gpl.5774.pheno) #Dataframe of all data associated with arrays
 
@@ -297,7 +318,7 @@ gpl.5774.rg <- read.maimages(gpl.5774.targets,
                              source="genepix",
                              columns=gpl.5774.cols,
                              annotation=c("Block","Row","Column","ID","NAME"),
-                             path="./GSE9331_RAW")
+                             path="./GSE16146_RAW")
 
 #Generate a Layout object for the background correction and normalization
 gpl.5774.rg$printer <- getLayout(gpl.5774.rg$genes)
