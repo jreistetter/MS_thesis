@@ -89,7 +89,7 @@ gpl.4291.rg$printer <- getLayout(gpl.4291.rg$genes)
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.4291.rg, path="./QA/prenormMA")
+plotMA3by2(gpl.4291.rg, path="./QA/prenormMA", main=gpl.4291.targets$Cy5)
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -104,7 +104,7 @@ length(unique(gpl.4291.bc.norm.rv$genes$Name)) #4595 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.4291.targets$Cy5)
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -199,7 +199,7 @@ gpl.4293.rg$printer <- getLayout(gpl.4293.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./GPL4293/QA/prenormMA", recursive=T)
-plotMA3by2(gpl.4293.rg, path="./GPL4293/QA/prenormMA")
+plotMA3by2(gpl.4293.rg, path="./GPL4293/QA/prenormMA", main=gpl.4293.targets$Cy5)
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -217,7 +217,7 @@ length(unique(gpl.4293.bc.norm.rv$genes$Name)) #3900 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./GPL4293/QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4293.bc.norm.rv, path="./GPL4293/QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.4293.bc.norm.rv, path="./GPL4293/QA/postnormMA_RVfiltered", main=gpl.4293.targets$Cy5)
 
 #QA plots to see if normalization worked
 setwd("./GPL4293/QA")
@@ -304,7 +304,7 @@ gpl.5774.rg$printer <- getLayout(gpl.5774.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./GPL5774/QA/prenormMA", recursive=T)
-plotMA3by2(gpl.5774.rg, path="./GPL5774/QA/prenormMA")
+plotMA3by2(gpl.5774.rg, path="./GPL5774/QA/prenormMA", main=gpl.5774.targets$Cy5)
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -319,7 +319,7 @@ length(unique(gpl.5774.bc.norm.rv$genes$NAME)) #3898 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./GPL5774/QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.5774.bc.norm.rv, path="./GPL5774/QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.5774.bc.norm.rv, path="./GPL5774/QA/postnormMA_RVfiltered", main=gpl.5774.targets$Cy5)
 
 #QA plots to see if normalization worked
 setwd("./GPL5774/QA")
