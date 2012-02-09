@@ -246,3 +246,102 @@ gpl.8561.disc <- discretize(gpl.8561.rv.M)
 gpl.8561.disc$gene <- gpl.8561.bc.norm.rv$genes$ORF
 
 
+
+#######
+# 
+# GPL 8562
+#
+#######
+setwd("../..")
+
+#load platform data
+gpl.8562 <- g.16146.geo.matrix[["GSE16146-GPL8562_series_matrix.txt.gz"]]
+gpl.8562.pheno <- phenoData(gpl.8562) #Gets phenotype data
+gpl.8562.pdata <- pData(gpl.8562.pheno) #Dataframe of all data associated with arrays
+
+gpl.8562.annot <- featureData(gpl.8562)@data
+
+#Pull the file names out of the pData dataframe, need to process the strings a
+#bit because they point to the ftp path to download, we only care about file name
+gpl.8562.fnames <- rownames(gpl.8562.pdata)
+gpl.8562.fnames <- sapply(gpl.8562.fnames, 
+                        function(x) {paste(x, ".txt", sep="")},
+                        USE.NAMES=F
+                        )
+
+#Get the GEO accessions for each array to use as an ID
+gpl.8562.arraynames <- rownames(gpl.8562.pdata)
+
+#Get the treatments for each array
+gpl.8562.treatment <- as.character(gpl.8562.pdata$source_name_ch2)
+
+#All the data is in the correct format, build it into a dataframe
+#that fits the specs for input into the read.maimages function.
+gpl.8562.targets <- data.frame(FileName=gpl.8562.fnames,
+                             Cy3 = rep("control", length(gpl.8562.fnames)),
+                             Cy5 = gpl.8562.treatment, stringsAsFactors=F)
+
+rownames(gpl.8562.targets) <- gpl.8562.arraynames
+
+
+##Set the column IDs for reading each dataset into the limma object
+#column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
+gpl.8562.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
+                    Rb="CH2B_MEDIAN", Gb="CH1B_MEDIAN")
+
+gpl.8562.rg <- read.maimages(gpl.8562.targets,
+                             annotation=c("ID_REF"),
+                             columns=gpl.8562.cols,
+                             path="./GSE16146_RAW")
+
+gpl.8562.gal <- readGAL("SMD_print_580.gal")
+colnames(gpl.8562.gal)[5] <- "Reporter.Name"
+#Generate a Layout object for the background correction and normalization
+gpl.8562.rg$genes <- merge(gpl.8562.annot, gpl.8562.rg$genes, by.x = "ID", by.y="ID_REF", all.y=T)
+#gpl.8562.rg$printer <- getLayout(gpl.8562.rg$genes)
+gpl.8562.rg$printer <- getLayout(gpl.8562.gal)
+
+##Now that the data is read in, do some QA/QC by looking at MA plots
+dir.create("./GPL8562")
+setwd("./GPL8562")
+dir.create("./QA")
+dir.create("./QA/prenormMA")
+plotMA3by2(gpl.8562.rg, path="./QA/prenormMA", main=gpl.8562.targets$Cy5)
+
+
+#Normalize the arrays, may have to remove some if the artifacts remain
+gpl.8562.bc <- backgroundCorrect(gpl.8562.rg, method="normexp", offset=50)
+gpl.8562.bc.norm <- normalizeWithinArrays(gpl.8562.bc, method="loess")
+
+#Need to filter so that only RV genes are present
+gpl.8562.rv.idx <- grepl(pattern="RV", x=gpl.8562.rg$genes$ORF, fixed=T)
+sum(gpl.8562.rv.idx) #16,068 features represented
+gpl.8562.bc.norm.rv <- gpl.8562.bc.norm[gpl.8562.rv.idx,]
+
+#Redo the MA plots and see if artifacts disappear
+dir.create("./QA/postnormMA_RVfiltered")
+plotMA3by2(gpl.8562.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.8562.targets$Cy5)
+
+#QA plots to see if normalization worked
+setwd("./QA")
+png("uncorrected_densities.png")
+plotDensities(gpl.8562.rg)
+dev.off()
+
+png("corrected_densities.png")
+plotDensities(gpl.8562.bc.norm.rv)
+dev.off()
+
+
+################
+#
+# Begin discretizing values
+#
+################
+
+##Extract log-2 expression ratios and discretize
+
+gpl.8562.rv.M <- as.data.frame(gpl.8562.bc.norm.rv$M)
+gpl.8562.disc <- discretize(gpl.8562.rv.M)
+gpl.8562.disc$gene <- gpl.8562.bc.norm.rv$genes$ORF
+
