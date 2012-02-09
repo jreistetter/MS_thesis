@@ -14,9 +14,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/)
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
 #My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work")
+#setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
 setwd("./data/exprs/GSE9331")
@@ -87,6 +87,8 @@ gpl.4291.rg <- read.maimages(gpl.4291.targets,
 gpl.4291.rg$printer <- getLayout(gpl.4291.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
+dir.create("./GPL4291")
+setwd("./GPL4291")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
 plotMA3by2(gpl.4291.rg, path="./QA/prenormMA", main=gpl.4291.targets$Cy5)
@@ -130,16 +132,19 @@ gpl.4291.rv.M$gene <- gpl.4291.bc.norm.rv$genes$Name
 gpl.4291.gene_ids <- unique(gpl.4291.rv.M$gene)
 gpl.4291.M.avg <- avg_probes(gpl.4291.rv.M, gpl.4291.gene_ids)
 
-gpl.4291.disc <- discretize(gpl.4291.M.avg)
-
 ##Need to reverse the sign of arrays where the control was Cy5
 ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
 gpl.4291.ch2_Cy3.arrays <- as.character(gpl.4291.pdata$geo_accession[ch2_Cy3.idx])
 gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.disc) %in% gpl.4291.ch2_Cy3.arrays)
 
 for (idx in gpl.4291.ch2_Cy3.idx){
-  gpl.4291.disc[,idx] <- -1 * gpl.4291.disc[,idx]
+  gpl.4291.M.avg[,idx] <- -1 * gpl.4291.M.avg[,idx]
 }
+
+
+gpl.4291.disc <- discretize(gpl.4291.M.avg)
+
+
 
 
 #######
@@ -147,6 +152,7 @@ for (idx in gpl.4291.ch2_Cy3.idx){
 # GPL 4293
 #
 #######
+setwd("../../")
 
 gpl.4293 <- g.9331.geo[["GSE9331-GPL4293_series_matrix.txt.gz"]]
 gpl.4293.pheno <- phenoData(gpl.4293) #Gets phenotype data
@@ -252,6 +258,8 @@ gpl.4293.disc <- discretize(gpl.4293.M.avg)
 #
 #######
 
+setwd("../..")
+
 gpl.5774 <- g.9331.geo[["GSE9331-GPL5774_series_matrix.txt.gz"]]
 gpl.5774.pheno <- phenoData(gpl.5774) #Gets phenotype data
 gpl.5774.pdata <- pData(gpl.5774.pheno) #Dataframe of all data associated with arrays
@@ -281,8 +289,7 @@ rownames(gpl.5774.targets) <- gpl.5774.arraynames
 #Initial attempts at reading in the images threw errors on multiple arrays.
 #Inspection of the files shows they are corrupted in some way.
 #Exclude from targets dataframe.
-dim(gpl.5774.targets) #12 x 3
-bad.arrays <- c("GSM237676.gpr.gz")
+dim(gpl.5774.targets) #2 x 3
 bad.idx <- which(gpl.5774.targets$FileName %in% bad.arrays)
 gpl.5774.targets <- gpl.5774.targets[-bad.idx,]
 dim(gpl.5774.targets) #1x3, 1 arrays removed successfully
@@ -347,4 +354,8 @@ gpl.5774.M.avg <- avg_probes(gpl.5774.rv.M, gpl.5774.gene_ids)
 
 gpl.5774.disc <- discretize(gpl.5774.M.avg)
 
-
+#Save M objects for later
+setwd("../..")
+save(gpl.4291.M.avg, file="gpl.4291.M.avg.RData")
+save(gpl.4293.M.avg, file="gpl.4293.M.avg.RData")
+save(gpl.5774.M.avg, file="gpl.5774.M.avg.RData")

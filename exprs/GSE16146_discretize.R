@@ -345,3 +345,13 @@ gpl.8562.rv.M <- as.data.frame(gpl.8562.bc.norm.rv$M)
 gpl.8562.disc <- discretize(gpl.8562.rv.M)
 gpl.8562.disc$gene <- gpl.8562.bc.norm.rv$genes$ORF
 
+
+#Save all the M objects for later
+setwd("../..")
+
+save(gpl.8523.rv.M, file="gpl.8523.M.RData")
+save(gpl.8561.rv.M, file="gpl.8561.M.RData")
+save(gpl.8562.rv.M, file="gpl.8562.M.RData")
+
+
+
