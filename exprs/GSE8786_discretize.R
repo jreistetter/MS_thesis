@@ -12,9 +12,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU wd
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs")
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs/GSE8786/")
 #My laptop wd
-setwd("~/schoolDB/Dropbox/thesis_work/data/exprs/GSE8786/")
+#setwd("~/schoolDB/Dropbox/thesis_work/data/exprs/GSE8786/")
 
 
 ##########################
@@ -94,7 +94,8 @@ g.8786.rg$printer <- getLayout(g.8786.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./QA/prenormMA")
-plotMA3by2(g.8786.rg, path="./QA/prenormMA")
+plotMA3by2(g.8786.rg, path="./QA/prenormMA", 
+           main=paste(g.8786.targets$FileName, g.8786.targets$Cy5, sep=" - "))
 
 #Normalize the arrays, may have to remove some if the artifacts remain
 g.8786.bc <- backgroundCorrect(g.8786.rg, method="normexp", offset=50)
@@ -108,7 +109,8 @@ g.8786.bc.norm.rv <- g.8786.bc.norm[g.8786.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(g.8786.bc.norm.rv, path="./QA/postnormMA_RVfiltered")
+plotMA3by2(g.8786.bc.norm.rv, path="./QA/postnormMA_RVfiltered",
+           main=paste(g.8786.targets$FileName, g.8786.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./QA")

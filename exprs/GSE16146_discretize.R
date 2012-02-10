@@ -7,8 +7,6 @@
 
 # Written by Joe Reistetter
 
-##TODO
-##8523 has the reference as Cy5 for some samples
 
 library(GEOquery)
 library(limma)
@@ -107,7 +105,8 @@ dir.create("./GPL8523")
 setwd("./GPL8523")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.8523.rg, path="./QA/prenormMA", main=gpl.8523.targets$Cy5)
+plotMA3by2(gpl.8523.rg, path="./QA/prenormMA", 
+           main=paste(gpl.8523.targets$FileName, gpl.8523.targets$Cy5, sep=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -121,7 +120,8 @@ gpl.8523.bc.norm.rv <- gpl.8523.bc.norm[gpl.8523.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.8523.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.8523.targets$Cy5)
+plotMA3by2(gpl.8523.bc.norm.rv, path="./QA/postnormMA_RVfiltered", 
+           main=paste(gpl.8523.targets$FileName, gpl.8523.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -206,7 +206,8 @@ dir.create("./GPL8561")
 setwd("./GPL8561")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.8561.rg, path="./QA/prenormMA", main=gpl.8561.targets$Cy5)
+plotMA3by2(gpl.8561.rg, path="./QA/prenormMA", 
+           main=paste(gpl.8561.targets$FileName, gpl.8561.targets$Cy5, paste=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -220,7 +221,8 @@ gpl.8561.bc.norm.rv <- gpl.8561.bc.norm[gpl.8561.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.8561.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.8561.targets$Cy5)
+plotMA3by2(gpl.8561.bc.norm.rv, path="./QA/postnormMA_RVfiltered", 
+           main=paste(gpl.8561.targets$FileName, gpl.8561.targets$Cy5, paste=" - "))
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -306,7 +308,8 @@ dir.create("./GPL8562")
 setwd("./GPL8562")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.8562.rg, path="./QA/prenormMA", main=gpl.8562.targets$Cy5)
+plotMA3by2(gpl.8562.rg, path="./QA/prenormMA", 
+           main=paste(gpl.8562.targets$FileName, gpl.8562.targets$Cy5, sep=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -320,7 +323,8 @@ gpl.8562.bc.norm.rv <- gpl.8562.bc.norm[gpl.8562.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.8562.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.8562.targets$Cy5)
+plotMA3by2(gpl.8562.bc.norm.rv, path="./QA/postnormMA_RVfiltered", 
+           main=paste(gpl.8562.targets$FileName, gpl.8562.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./QA")

@@ -91,7 +91,8 @@ dir.create("./GPL4291")
 setwd("./GPL4291")
 dir.create("./QA")
 dir.create("./QA/prenormMA")
-plotMA3by2(gpl.4291.rg, path="./QA/prenormMA", main=gpl.4291.targets$Cy5)
+plotMA3by2(gpl.4291.rg, path="./QA/prenormMA", 
+           main=paste(gpl.4291.targets$FileName, gpl.4291.targets$Cy5, sep=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -106,7 +107,8 @@ length(unique(gpl.4291.bc.norm.rv$genes$Name)) #4595 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered", main=gpl.4291.targets$Cy5)
+plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered",
+           main=paste(gpl.4291.targets$FileName, gpl.4291.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./QA")
@@ -205,7 +207,8 @@ gpl.4293.rg$printer <- getLayout(gpl.4293.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./GPL4293/QA/prenormMA", recursive=T)
-plotMA3by2(gpl.4293.rg, path="./GPL4293/QA/prenormMA", main=gpl.4293.targets$Cy5)
+plotMA3by2(gpl.4293.rg, path="./GPL4293/QA/prenormMA", 
+           main=paste(gpl.4293.targets$FileName, gpl.4293.targets$Cy5, sep=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -223,7 +226,8 @@ length(unique(gpl.4293.bc.norm.rv$genes$Name)) #3900 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./GPL4293/QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.4293.bc.norm.rv, path="./GPL4293/QA/postnormMA_RVfiltered", main=gpl.4293.targets$Cy5)
+plotMA3by2(gpl.4293.bc.norm.rv, path="./GPL4293/QA/postnormMA_RVfiltered", 
+           main=paste(gpl.4293.targets$FileName, gpl.4293.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./GPL4293/QA")
@@ -286,14 +290,6 @@ gpl.5774.targets <- data.frame(FileName=gpl.5774.fnames,
 
 rownames(gpl.5774.targets) <- gpl.5774.arraynames
 
-#Initial attempts at reading in the images threw errors on multiple arrays.
-#Inspection of the files shows they are corrupted in some way.
-#Exclude from targets dataframe.
-dim(gpl.5774.targets) #2 x 3
-bad.idx <- which(gpl.5774.targets$FileName %in% bad.arrays)
-gpl.5774.targets <- gpl.5774.targets[-bad.idx,]
-dim(gpl.5774.targets) #1x3, 1 arrays removed successfully
-
 
 ##Set the column IDs for reading each dataset into the limma object
 #column names: Ch1 Intensity (Mean), Ch1 Background (Median), Ch2 Background (Median), Ch2 Intensity (Mean) -- ch1 = Cy3 = green, ch2 = Cy5 = red
@@ -311,7 +307,8 @@ gpl.5774.rg$printer <- getLayout(gpl.5774.rg$genes)
 
 ##Now that the data is read in, do some QA/QC by looking at MA plots
 dir.create("./GPL5774/QA/prenormMA", recursive=T)
-plotMA3by2(gpl.5774.rg, path="./GPL5774/QA/prenormMA", main=gpl.5774.targets$Cy5)
+plotMA3by2(gpl.5774.rg, path="./GPL5774/QA/prenormMA", 
+           main=paste(gpl.5774.targets$FileName, gpl.5774.targets$Cy5, sep=" - "))
 
 
 #Normalize the arrays, may have to remove some if the artifacts remain
@@ -326,7 +323,8 @@ length(unique(gpl.5774.bc.norm.rv$genes$NAME)) #3898 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./GPL5774/QA/postnormMA_RVfiltered")
-plotMA3by2(gpl.5774.bc.norm.rv, path="./GPL5774/QA/postnormMA_RVfiltered", main=gpl.5774.targets$Cy5)
+plotMA3by2(gpl.5774.bc.norm.rv, path="./GPL5774/QA/postnormMA_RVfiltered", 
+           main=paste(gpl.5774.targets$FileName, gpl.5774.targets$Cy5, sep=" - "))
 
 #QA plots to see if normalization worked
 setwd("./GPL5774/QA")
@@ -359,3 +357,7 @@ setwd("../..")
 save(gpl.4291.M.avg, file="gpl.4291.M.avg.RData")
 save(gpl.4293.M.avg, file="gpl.4293.M.avg.RData")
 save(gpl.5774.M.avg, file="gpl.5774.M.avg.RData")
+
+save(gpl.4291.rv.M, file="gpl.4291.rv.M.RData")
+save(gpl.4293.rv.M, file="gpl.4293.rv.M.RData")
+save(gpl.5774.rv.M, file="gpl.5774.rv.M.RData")
