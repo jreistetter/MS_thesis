@@ -47,3 +47,16 @@ discretize <- function(df){
   rownames(disc.df) <- rownames(df)
   return(disc.df)
 }
+
+probe_CV <- function(gene_id, df){
+  #get intensities for all arrays of that gene
+  probes.M <- df[df$gene == gene_id,1:(ncol(df)-1)]
+  coef_vars <- apply(probes.M, 2, coef_var)
+  return(coef_vars)
+}
+
+coef_var <- function(vals){
+  coef <- sd(vals) / mean(vals)
+  return(coef)
+}
+
