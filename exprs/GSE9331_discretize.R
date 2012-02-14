@@ -146,8 +146,30 @@ for (idx in gpl.4291.ch2_Cy3.idx){
 
 gpl.4291.disc <- discretize(gpl.4291.M.avg)
 
+#Get coefficient of variation of ratios of the the replicated probes
+#Remove bad arrays first
+bad.4291 <- c("GSM237637.gpr", "GSM237644.gpr", "GSM237645.gpr", "GSM237646.gpr", "GSM237650.gpr", 
+              "GSM237651.gpr", "GSM237655.gpr", "GSM237666.gpr", "GSM237667.gpr")
 
+good.4291.col.idx <- which(!(colnames(gpl.4291.rv.M) %in% bad.4291))
+gpl.4291.clean <- gpl.4291.rv.M[,good.4291.col.idx]
 
+replicated.4291 <- unique(gpl.4291.clean[duplicated(gpl.4291.clean$gene),]$gene)
+coefs.4291 <- sapply(replicated, probe_CV, df=gpl.4291.rv.M)
+coefs.mean.4291 <- apply(coefs.4291, 2, mean)
+coefs.median.4291 <- apply(coefs.4291, 2, median)
+
+png("GPL4291_probe_mean_CoV.png")
+boxplot(coefs.mean.4291, 
+        main = "Gene-wise mean coefficient of variation\nProbe log(R/G)\nGPL4291 22 arrays 3897 genes",
+        ylab="Mean CoV")
+dev.off()
+
+png("GPL4291_probe_median_CoV.png")
+boxplot(coefs.median.4291, 
+        main = "Gene-wise median coefficient of variation\nProbe log(R/G)\nGPL4291 22 arrays 3897 genes",
+        ylab="Median CoV")
+dev.off()
 
 #######
 # 
@@ -254,6 +276,23 @@ gpl.4293.gene_ids <- unique(gpl.4293.rv.M$gene)
 gpl.4293.M.avg <- avg_probes(gpl.4293.rv.M, gpl.4293.gene_ids)
 
 gpl.4293.disc <- discretize(gpl.4293.M.avg)
+
+replicated.4293 <- unique(gpl.4293.rv.M[duplicated(gpl.4293.rv.M$gene),]$gene)
+coefs.4293 <- sapply(replicated, probe_CV, df=gpl.4293.rv.M)
+coefs.mean.4293 <- apply(coefs.4293, 2, mean)
+coefs.median.4293 <- apply(coefs.4293, 2, median)
+
+png("GPL4293_probe_mean_CoV.png")
+boxplot(coefs.mean.4293, 
+        main = "Gene-wise mean coefficient of variation\nProbe log(R/G)\nGPL4293 11 arrays 3897 genes",
+        ylab="Mean CoV")
+dev.off()
+
+png("GPL4293_probe_median_CoV.png")
+boxplot(coefs.median.4293, 
+        main = "Gene-wise median coefficient of variation\nProbe log(R/G)\nGPL4293 11 arrays 3897 genes",
+        ylab="Median CoV")
+dev.off()
 
 
 #######
