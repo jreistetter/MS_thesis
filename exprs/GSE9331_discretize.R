@@ -81,6 +81,7 @@ gpl.4291.cols <- list(R="F635 Mean", G="F532 Mean",
 gpl.4291.rg <- read.maimages(gpl.4291.targets,
                              source="genepix",
                              columns=gpl.4291.cols,
+                             wt.fun=wtflags(weight=0, cutoff=-1),
                              path="./GSE9331_RAW")
 
 #Generate a Layout object for the background correction and normalization
@@ -128,16 +129,19 @@ dev.off()
 ################
 
 ##Extract log-2 expression ratios and discretize
-
-gpl.4291.rv.M <- as.data.frame(gpl.4291.bc.norm.rv$M)
-gpl.4291.rv.M$gene <- gpl.4291.bc.norm.rv$genes$Name
+gpl.4291.rv.M <- remove_bad_spots(gpl.4291.bc.norm.rv)
+gpl.4291.rv.M$gene <- rownames(gpl.4291.rv.M)
 gpl.4291.gene_ids <- unique(gpl.4291.rv.M$gene)
+
 gpl.4291.M.avg <- avg_probes(gpl.4291.rv.M, gpl.4291.gene_ids)
 
 ##Need to reverse the sign of arrays where the control was Cy5
 ch2_Cy3.idx <- which(gpl.4291.pdata$label_ch2 == "Cy3")
 gpl.4291.ch2_Cy3.arrays <- as.character(gpl.4291.pdata$geo_accession[ch2_Cy3.idx])
-gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.disc) %in% gpl.4291.ch2_Cy3.arrays)
+for (i in 1:length(gpl.4291.ch2_Cy3.arrays)){
+  gpl.4291.ch2_Cy3.arrays[i] <- paste(gpl.4291.ch2_Cy3.arrays[i], ".gpr", sep="")
+}
+gpl.4291.ch2_Cy3.idx <- which(colnames(gpl.4291.M.avg) %in% gpl.4291.ch2_Cy3.arrays)
 
 for (idx in gpl.4291.ch2_Cy3.idx){
   gpl.4291.M.avg[,idx] <- -1 * gpl.4291.M.avg[,idx]
@@ -155,7 +159,7 @@ good.4291.col.idx <- which(!(colnames(gpl.4291.rv.M) %in% bad.4291))
 gpl.4291.clean <- gpl.4291.rv.M[,good.4291.col.idx]
 
 replicated.4291 <- unique(gpl.4291.clean[duplicated(gpl.4291.clean$gene),]$gene)
-coefs.4291 <- sapply(replicated, probe_CV, df=gpl.4291.rv.M)
+coefs.4291 <- sapply(replicated.4291, probe_CV, df=gpl.4291.rv.M)
 coefs.mean.4291 <- apply(coefs.4291, 2, mean)
 coefs.median.4291 <- apply(coefs.4291, 2, median)
 
@@ -222,6 +226,7 @@ gpl.4293.cols <- list(R="F635 Mean", G="F532 Mean",
 gpl.4293.rg <- read.maimages(gpl.4293.targets,
                              source="genepix",
                              columns=gpl.4293.cols,
+                             wt.fun=wtflags(weight=0, cutoff=-1),
                              path="./GSE9331_RAW")
 
 #Generate a Layout object for the background correction and normalization
@@ -269,16 +274,15 @@ dev.off()
 ################
 
 ##Extract log-2 expression ratios and discretize
-
-gpl.4293.rv.M <- as.data.frame(gpl.4293.bc.norm.rv$M)
-gpl.4293.rv.M$gene <- gpl.4293.bc.norm.rv$genes$Name
+gpl.4293.rv.M <- remove_bad_spots(gpl.4293.bc.norm.rv)
+gpl.4293.rv.M$gene <- rownames(gpl.4293.rv.M)
 gpl.4293.gene_ids <- unique(gpl.4293.rv.M$gene)
+
 gpl.4293.M.avg <- avg_probes(gpl.4293.rv.M, gpl.4293.gene_ids)
 
-gpl.4293.disc <- discretize(gpl.4293.M.avg)
 
 replicated.4293 <- unique(gpl.4293.rv.M[duplicated(gpl.4293.rv.M$gene),]$gene)
-coefs.4293 <- sapply(replicated, probe_CV, df=gpl.4293.rv.M)
+coefs.4293 <- sapply(replicated.4293, probe_CV, df=gpl.4293.rv.M)
 coefs.mean.4293 <- apply(coefs.4293, 2, mean)
 coefs.median.4293 <- apply(coefs.4293, 2, median)
 
