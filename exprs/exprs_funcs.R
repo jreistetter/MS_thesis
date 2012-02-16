@@ -28,6 +28,9 @@ avg_probes <- function(df, gene_ids){
 }
 
 discretizer <- function(val){
+  if(is.na(val)){
+    return(NA)
+  }
   if(val >= 1){
     return(1)
   }
@@ -58,5 +61,14 @@ probe_CV <- function(gene_id, df){
 coef_var <- function(vals){
   coef <- sd(vals) / mean(vals)
   return(coef)
+}
+
+remove_bad_spots <- function(ma_list){
+  probe.weights <- ma_list$weights
+  probe.weights[probe.weights == 0] <- NA
+  cleaned <- probe.weights * ma_list$M
+  
+  return(as.data.frame(cleaned))
+
 }
 
