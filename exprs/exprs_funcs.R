@@ -72,3 +72,6 @@ remove_bad_spots <- function(ma_list){
 
 }
 
+
+
+

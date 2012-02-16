@@ -12,9 +12,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
 #My laptop Dropbox
-#setwd("~/schoolDB/Dropbox/thesis_work")
+setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
 setwd("./data/exprs/GSE16146")
@@ -88,9 +88,14 @@ rownames(gpl.8523.targets) <- gpl.8523.arraynames
 gpl.8523.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
                     Rb="CH2B_MEDIAN", Gb="CH1B_MEDIAN")
 
+#Define weight function to exclude spots that have a "FLAG" column value < 0 in the
+#raw data
+flagged <- function(x) as.numeric(x[,"FLAG"] > -1)
+
 gpl.8523.rg <- read.maimages(gpl.8523.targets,
                              annotation=c("ID_REF"),
                              columns=gpl.8523.cols,
+                             wt.fun=flagged,
                              path="./GSE16146_RAW")
 
 gpl.8523.gal <- readGAL("SMD_print_745.gal")
@@ -141,10 +146,18 @@ dev.off()
 ################
 
 ##Extract log-2 expression ratios and discretize
-
-gpl.8523.rv.M <- as.data.frame(gpl.8523.bc.norm.rv$M)
+#override remove_bad_spots function because gene name is
+#in different named column for GSE16146
+remove_bad_spots <- function(ma_list){
+  probe.weights <- ma_list$weights
+  probe.weights[probe.weights == 0] <- NA
+  cleaned <- probe.weights * ma_list$M
+  rownames(cleaned) <- ma_list$genes$ORF
+  return(as.data.frame(cleaned))
+  
+}
+gpl.8523.rv.M <- remove_bad_spots(gpl.8523.bc.norm.rv)
 gpl.8523.disc <- discretize(gpl.8523.rv.M)
-gpl.8523.disc$gene <- gpl.8523.bc.norm.rv$genes$ORF
 
 
 #######
@@ -192,6 +205,7 @@ gpl.8561.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
 gpl.8561.rg <- read.maimages(gpl.8561.targets,
                              annotation=c("ID_REF"),
                              columns=gpl.8561.cols,
+                             wt.fun=flagged,
                              path="./GSE16146_RAW")
 
 gpl.8561.gal <- readGAL("SMD_print_498.gal")
@@ -243,10 +257,9 @@ dev.off()
 
 ##Extract log-2 expression ratios and discretize
 
-gpl.8561.rv.M <- as.data.frame(gpl.8561.bc.norm.rv$M)
-gpl.8561.disc <- discretize(gpl.8561.rv.M)
-gpl.8561.disc$gene <- gpl.8561.bc.norm.rv$genes$ORF
-
+gpl.8561.rv.M <- remove_bad_spots(gpl.8561.bc.norm.rv)
+gpl.8561.rv.M.avg <- avg_probes(gpl.8561.rv.M, gpl.8561.bc.norm.rv$genes$ORF)
+gpl.8561.disc <- discretize(gpl.8561.rv.M.avg)
 
 
 #######
