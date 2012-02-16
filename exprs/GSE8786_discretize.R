@@ -11,10 +11,13 @@
 library(GEOquery)
 library(limma)
 
-#At OHSU wd
-setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/data/exprs/GSE8786/")
-#My laptop wd
-#setwd("~/schoolDB/Dropbox/thesis_work/data/exprs/GSE8786/")
+#At OHSU Dropbox
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+#My laptop Dropbox
+#setwd("~/schoolDB/Dropbox/thesis_work")
+source("./code/exprs/exprs_funcs.R")
+
+setwd("./data/exprs/GSE8786")
 
 
 ##########################
@@ -78,6 +81,10 @@ rownames(g.8786.targets) <- g.8786.arraynames
 g.8786.cols <- list(R="Ch2 Intensity (Mean)", G="Ch1 Intensity (Mean)",
                     Rb="Ch2 Background (Median)", Gb="Ch1 Background (Median)")
 
+#Define weight function to exclude spots that have a "Spot Flag" column value < 0 in the
+#raw data
+flagged <- function(x) as.numeric(x[,"Spot Flag"] > -1) 
+
 #Read in the raw intensities. Note that the annotation will be used later
 #in the background correction and normalization
 #and correspond to Block ,row, and column.
@@ -85,7 +92,8 @@ g.8786.rg <- read.maimages(g.8786.targets, columns=g.8786.cols,
                            annotation=c("Sector", 
                                         "X Grid Coordinate (within sector)",
                                         "Y Grid Coordinate (within sector)", 
-                                        "Spot", "Name"),
+                                        "Spot", "Name", "Spot Flag"),
+                           wt.fun=flagged,
                            path="./GSE8786_RAW")
 colnames(g.8786.rg$genes) <- c("Block", "Row", "Column", "Spot", "Name")
 
@@ -129,32 +137,10 @@ dev.off()
 ################
 
 ##Extract log-2 expression ratios and discretize
+g.8786.M.rv <- remove_bad_spots(g.8786.bc.norm.rv)
 
-#Subset to include only treatment arrays, only genes
-g.8786.wayne.idx <- grepl("Wayne", g.8786.targets$Cy5, fixed=T)
-g.8786.bc.norm.rv.wayne <- g.8786.bc.norm.rv[, g.8786.wayne.idx]
+g.8786.disc <- discretize(g.8786.M.rv)
 
-g.8786.rv.treat.M <- as.data.frame(g.8786.bc.norm.rv.wayne$M)
-row.names(g.8786.rv.treat.M) <- g.8786.bc.norm.rv.wayne$genes$Name
-
-discretizer <- function(val){
-  if(val >= 1){
-    return(1)
-  }
-  
-  if(val <= -1){
-    return (-1)
-  }
-  return(0)
-}
-
-vec.discret <- function(vec){
-  return(sapply(vec, discretizer, USE.NAMES=F))
-}
-
-g.8786.disc <- data.frame(lapply(g.8786.rv.treat.M, vec.discret),
-                          row.names = rownames(g.8786.rv.treat.M))
-
-save(g.8786.disc, file="../GSE8786_disc.RData")
-save(g.8786.rv.treat.M, file="../GSE8786_M.RData")
+save(g.8786.disc, file="../g.8786.disc.RData")
+save(g.8786.M.rv, file="../g.8786.M.rv.RData")
 
