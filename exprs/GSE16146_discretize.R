@@ -307,6 +307,7 @@ gpl.8562.cols <- list(R="CH2I_MEAN", G="CH1I_MEAN",
 gpl.8562.rg <- read.maimages(gpl.8562.targets,
                              annotation=c("ID_REF"),
                              columns=gpl.8562.cols,
+                             wt.fun=flagged,
                              path="./GSE16146_RAW")
 
 gpl.8562.gal <- readGAL("SMD_print_580.gal")
@@ -357,17 +358,14 @@ dev.off()
 ################
 
 ##Extract log-2 expression ratios and discretize
-
-gpl.8562.rv.M <- as.data.frame(gpl.8562.bc.norm.rv$M)
+gpl.8562.rv.M <- remove_bad_spots(gpl.8562.bc.norm.rv)
 gpl.8562.disc <- discretize(gpl.8562.rv.M)
-gpl.8562.disc$gene <- gpl.8562.bc.norm.rv$genes$ORF
-
 
 #Save all the M objects for later
 setwd("../..")
 
 save(gpl.8523.rv.M, file="gpl.8523.M.RData")
-save(gpl.8561.rv.M, file="gpl.8561.M.RData")
+save(gpl.8561.rv.M.avg, file="gpl.8561.M.RData")
 save(gpl.8562.rv.M, file="gpl.8562.M.RData")
 
 
