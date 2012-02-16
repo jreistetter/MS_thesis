@@ -14,7 +14,7 @@ avg_probes <- function(df, gene_ids){
   i = 1
   for (gene in gene_ids){
     probes <- df[which(df$gene == gene),]
-    probe_avg <- unlist(lapply(probes[,1:(ncol(df)-1)], function(x){sum(x)/length(x)}))
+    probe_avg <- unlist(lapply(probes[,1:(ncol(df)-1)], function(x) mean(x, na.rm=T)))
     avg_df[i,1:(ncol(df)-1)] <- probe_avg
     avg_df[i,]$gene <- gene
     
