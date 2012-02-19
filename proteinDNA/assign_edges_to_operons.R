@@ -48,6 +48,7 @@ library(IRanges)
 # Minus strand
 operons.minus <- operons[operons$Strand=="-",]
 genes.minus <- h37rv.annot[h37rv.annot$Strand=="-",]
+rownames(genes.minus) <- c(1:nrow(genes.minus))
 
 o.minus.r <- RangedData(ranges=IRanges(start = operons.minus$Start,
                                     end = operons.minus$Stop),
@@ -57,12 +58,20 @@ g.minus.r <- RangedData(ranges=IRanges(start = genes.minus$Start,
                         space = 1)
 
 minus.overlaps <- as.data.frame(as.matrix(findOverlaps(g.minus.r, o.minus.r)))
-colnames(minus.overlaps) <- c("gene", "operon")
+colnames(minus.overlaps) <- c("gene.idx", "operon")
+
+
+
+#add the locus ID
+minus.overlaps <- merge(minus.overlaps, genes.minus, by.x="gene.idx", by.y="row.names",
+                        all.x=T)
 minus.overlaps <- minus.overlaps[with(minus.overlaps, order(operon)),]
+
 
 # Positive strand
 operons.plus <- operons[operons$Strand=="+",]
 genes.plus <- h37rv.annot[h37rv.annot$Strand=="+",]
+rownames(genes.plus) <- c(1:nrow(genes.plus))
 
 o.plus.r <- RangedData(ranges=IRanges(start = operons.plus$Start,
                                       end = operons.plus$Stop),
@@ -72,8 +81,25 @@ g.plus.r <- RangedData(ranges=IRanges(start = genes.plus$Start,
                        space = 1)
 
 plus.overlaps <- as.data.frame(as.matrix(findOverlaps(g.plus.r, o.plus.r)))
-colnames(plus.overlaps) <- c("gene", "operon")
+colnames(plus.overlaps) <- c("gene.idx", "operon")
 plus.overlaps <- plus.overlaps[with(plus.overlaps, order(operon)),]
+
+#add the locus ID
+plus.overlaps <- merge(plus.overlaps, genes.plus, by.x="gene.idx", by.y="row.names",
+                       all.x=T)
+plus.overlaps <- plus.overlaps[with(plus.overlaps, order(operon)),]
+
+get_op_regulators <- function(operon, df, reg_df){
+  genes <- df[df$operon==operon,6]
+  regulators <- c()
+  for (i in 1:length(genes)){
+    gene_regs <- reg_df[reg_df$target == genes[i], 1]
+    regulators <- c(regulators, gene_regs)
+  }
+  return(unique(regulators))
+}
+
+
 
 #Make sure that the splits worked
 nrow(h37rv.annot) == (nrow(genes.minus) + nrow(genes.plus))
@@ -82,7 +108,6 @@ nrow(operons) == (nrow(operons.minus) + nrow(operons.plus))
 
 #Now need to assign regulators to operons
 
-dd[with(dd, order(-z, b)), ]
 
 #  making sure that the gene and operon are on the same strand
 # -for each gene in an operon, create an interaction between regulator and gene (protein-DNA edge)
