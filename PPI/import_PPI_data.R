@@ -29,15 +29,15 @@ setwd("~/schoolDB/Dropbox")
 #Goto PPI data dir
 setwd("./thesis_work/data/PPI/")
 
+##########################################################
+# 1. Import protein-protein interactions from two datasets
+##########################################################
+
 #Read in the STRING data, which are all functional associations for Mtb H37Rv from
 #the STRING flatfile available on their website.
 
 #Format is 3 columns, first two are the proteins and the last is the confidence score.
 #Max confidence score is 1000.
-
-
-888.Rv
-
 string_raw <- read.table("./STRING/STRING.H37Rv.txt", stringsAsFactors=F)
 
 #Original id looks like: 83332.Rv0002 so pull out just the Rv ID
@@ -46,15 +46,61 @@ string_raw$string2 <- sapply(string_raw[,2], function(x) strsplit(x, ".", fixed=
 
 string <- data.frame(string1=string_raw$string1, string2=string_raw$string2, conf=string_raw[,3])
 
-#Filter for confidence score defined at top of script
-string.filtered <- string[string$conf >= conf_filter, c(1,2)]
-
 #Read in the bacterial PPIs. First two rows are title and column labels, skip those.
 #Only need first two columns which are the interacting proteins
 
-hybrid <- read.table("pr100808n_si_008.txt", sep="\t", quote="", stringsAsfactors=F
+hybrid <- read.table("pr100808n_si_008.txt", sep="\t", quote="", stringsAsFactors=F,
                      skip=2, colClasses=c("character", "character", rep("NULL",4)))
 
 colnames(hybrid) <- c("hybrid1", "hybrid2")
+
+
+##########################################################
+# 2. Filter STRING associations for confidence > 0.9
+##########################################################
+
+#Filter for confidence score defined at top of script
+string.filtered <- string[string$conf >= conf_filter, c(1,2)]
+
+##########################################################
+# 3. Calculate the confidence score for each edge
+##########################################################
+
+#Need to create unique edge ID so we can see what edges
+#are in common
+
+string.filtered$edge_id <- paste(string.filtered$string1, string.filtered$string2, sep=",")
+hybrid$edge_id <- paste(hybrid$hybrid1, hybrid$hybrid2, sep=",")
+
+#Check how many edges are found in both data sets
+sum(string.filtered$edge_id %in% hybrid$edge_id)
+#20 found in both
+
+#At this point looks like adding a penalty for only being in one dataset
+#will affect only a small part of the network, so not going to do that.
+
+#Use combined degree from the two networks
+node_ids <- unique(c(string.filtered$string1, string.filtered$string2,
+                     hybrid$hybrid1, hybrid$hybrid1))
+
+length(node_ids)
+#3974 genes
+
+#initialize list to hold degrees
+node_degrees <- vector("list", length(node_ids))
+names(node_degrees) <- node_ids
+node_degrees <- lapply(node_degrees, function(x) x <- 0)
+
+#Add 1 to the degree of each protein in an edge for STRING
+for (node in c(string.filtered$string1, string.filtered$string2)){
+  node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
+}
+
+#Add 1 to the degree of each protein in an 2-hybrid edge
+for (node in c(hybrid$hybrid1, hybrid$hybrid2)){
+  node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
+}
+
+
 
 
