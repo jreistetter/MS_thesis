@@ -76,15 +76,18 @@ hybrid$edge_id <- paste(hybrid$hybrid1, hybrid$hybrid2, sep=",")
 sum(string.filtered$edge_id %in% hybrid$edge_id)
 #20 found in both
 
+string.filtered[,1] <- as.character(string.filtered[,1])
+string.filtered[,2] <- as.character(string.filtered[,2])
+
 #At this point looks like adding a penalty for only being in one dataset
 #will affect only a small part of the network, so not going to do that.
 
 #Use combined degree from the two networks
-node_ids <- unique(c(string.filtered$string1, string.filtered$string2,
-                     hybrid$hybrid1, hybrid$hybrid1))
+node_ids <- unique(c(string.filtered$string1, string.filtered$string2, 
+                     hybrid$hybrid1, hybrid$hybrid2))
 
 length(node_ids)
-#3974 genes
+#3382 genes
 
 #initialize list to hold degrees
 node_degrees <- vector("list", length(node_ids))
@@ -101,6 +104,30 @@ for (node in c(hybrid$hybrid1, hybrid$hybrid2)){
   node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
 }
 
+#From paper, the confidence score for an edge is given as:
+#
+#  p = 1 / 2 + exp(-0.2x + 5)
+#
+#
 
+calc_conf <- function(node_degree){
+  p <- 1 / (2 + exp(-0.2*node_degree + 5))
+  return(p)
+}
+
+string.filtered$conf <- 0
+add_degrees <- function(df, node_degrees){
+  for (i in c(1:nrow(df))){
+    e1.d <- node_degrees[[df[i,1]]]
+    e2.d <- node_degrees[[df[i,2]]]
+    degree <- max(e1.d, e2.d)
+    df[i,4] <- calc_conf(degree)
+  }
+  
+  return(df)
+}
+
+string.conf <- add_degrees(string.filtered, node_degrees)
+hybrid.conf <- add_degrees(hybrid, node_degrees)
 
 
