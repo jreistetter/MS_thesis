@@ -130,4 +130,20 @@ add_degrees <- function(df, node_degrees){
 string.conf <- add_degrees(string.filtered, node_degrees)
 hybrid.conf <- add_degrees(hybrid, node_degrees)
 
+colnames(hybrid.conf) <- c("e1", "e2", "edge_id", "conf")
+colnames(string.conf) <- c("e1", "e2", "edge_id", "conf")
 
+ppi.edges.dupes <- rbind(hybrid.conf[,c(1,2,4)], string.conf[,c(1,2,4)])
+
+dupes <- duplicated(ppi.edges.dupes)
+
+ppi.edges <- ppi.edges.dupes[!dupes,]
+
+nrow(ppi.edges.dupes) - nrow(ppi.edges)
+#Should equal 20, the number of edges in common between
+#the two networks
+
+#Assign direction = 0, undirected (see PMN docs)
+ppi.edges$direction <- 0
+write.table(ppi.edges, file="mtb.pp.list", quote=F, sep="\t",
+            col.names=F, row.names=F)
