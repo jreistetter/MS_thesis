@@ -18,16 +18,16 @@ setwd("~/schoolDB/Dropbox")
 
 setwd("./thesis_work/data/exprs")
 
-gse.8786 <- load("GSE8786/g.8786.M.rv.RData")
-gpl.4291 <- load("GSE9331/gpl.4291.M.avg.RData")
-gpl.4293 <- load("GSE9331/gpl.4293.M.avg.RData")
-gpl.8523 <- load("GSE16146/gpl.8523.M.RData")
-gpl.8561 <- load("GSE16146/gpl.8561.M.RData")
-gpl.8562 <- load("GSE16146/gpl.8562.M.RData")
+load("GSE8786/g.8786.M.rv.RData")
+load("GSE9331/gpl.4291.M.avg.RData")
+load("GSE9331/gpl.4293.M.avg.RData")
+load("GSE16146/gpl.8523.M.RData")
+load("GSE16146/gpl.8561.M.RData")
+load("GSE16146/gpl.8562.M.RData")
 
 
 # 2 - Merge the data frames from each experiment
-
+expr <- merge()
 
 
 

@@ -230,7 +230,7 @@ gpl.8561.bc.norm <- normalizeWithinArrays(gpl.8561.bc, method="loess")
 
 #Need to filter so that only RV genes are present
 gpl.8561.rv.idx <- grepl(pattern="RV", x=gpl.8561.rg$genes$ORF, fixed=T)
-sum(gpl.8561.rv.idx) #16,068 features represented
+sum(gpl.8561.rv.idx) #4,686 features represented
 gpl.8561.bc.norm.rv <- gpl.8561.bc.norm[gpl.8561.rv.idx,]
 
 #Redo the MA plots and see if artifacts disappear
@@ -258,7 +258,6 @@ dev.off()
 ##Extract log-2 expression ratios and discretize
 
 gpl.8561.rv.M <- remove_bad_spots(gpl.8561.bc.norm.rv)
-gpl.8561.rv.M.avg <- avg_probes(gpl.8561.rv.M, gpl.8561.bc.norm.rv$genes$ORF)
 gpl.8561.disc <- discretize(gpl.8561.rv.M.avg)
 
 
@@ -365,7 +364,7 @@ gpl.8562.disc <- discretize(gpl.8562.rv.M)
 setwd("../..")
 
 save(gpl.8523.rv.M, file="gpl.8523.M.RData")
-save(gpl.8561.rv.M.avg, file="gpl.8561.M.RData")
+save(gpl.8561.rv.M, file="gpl.8561.M.RData")
 save(gpl.8562.rv.M, file="gpl.8562.M.RData")
 
 
