@@ -27,26 +27,27 @@ avg_probes <- function(df, gene_ids){
   
 }
 
-discretizer <- function(val){
+discretizer <- function(val, fold){
   if(is.na(val)){
     return(NA)
   }
-  if(val >= 1){
+  if(val >= fold){
     return(1)
   }
   
-  if(val <= -1){
+  if(val <= -1*fold){
     return (-1)
   }
   return(0)
 }
 
-vec.discret <- function(vec){
-  return(sapply(vec, discretizer, USE.NAMES=F))
+vec.discret <- function(vec, fold){
+  return(vapply(vec, discretizer, FUN.VALUE=c(1),
+                USE.NAMES=F, fold = fold))
 }
 
-discretize <- function(df){
-  disc.df <- data.frame(lapply(df, vec.discret))
+discretize <- function(df, fold=1.5){
+  disc.df <- data.frame(lapply(df, vec.discret, fold=fold))
   rownames(disc.df) <- rownames(df)
   return(disc.df)
 }
