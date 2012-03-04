@@ -48,7 +48,7 @@ expr <- merge(expr, gpl.8562.rv.M,
               by.x="Row.names", by.y="row.names")
 
 #save for later use
-save(expr, "expr.RData")
+save(expr, file="expr.RData")
 
 #get rid of all objects except expr
 objs <- ls()
@@ -57,6 +57,22 @@ objs[which(objs == "expr")] <- "objs"
 rm(list=objs)
 
 # 3 - Exclude arrays identified in QC as erroneous
+
+excluded <- read.table("excluded_arrays.txt", head=F, stringsAsFactors=F)[,1]
+cols.excl <- which(colnames(expr) %in% excluded)
+length(excluded)
+length(cols.excl)
+#List of excluded arrays is 18, since we aren't doing 
+#gpl.8561 right now, 2 of the excluded arrays aren't in expr. So discrepancy
+#ok.
+
+ncol(expr)
+#145
+expr <- expr[,-cols.excl]
+145 - ncol(expr)
+#16, all the arrays excluded
+
+
 # 4 - Discretize data at a given fold change
 # 5 - Write the combined dataframe to a PMN file
 
