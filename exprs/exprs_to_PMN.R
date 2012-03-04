@@ -8,6 +8,15 @@
 #     -Filter out arrays with less than 10 DE genes
 # 5 - Write the combined dataframe to a PMN file
 
+# Notes:
+#   128 total arrays for express
+#   119 at 1-fold threshold
+#   105 at 1.5-fold threshold
+#   97 at 2-fold threshold
+#   *After filtering for arrays with < 10 DE genes
+
+
+
 # 1 - Load expression data from RData objects
 #
 
@@ -49,6 +58,7 @@ expr <- merge(expr, gpl.8562.rv.M,
               by.x="Row.names", by.y="row.names")
 
 #Get rid of Row.names column
+rownames(expr) <- expr[,1]
 expr <- expr[,-1]
 
 #get rid of all objects except expr
@@ -114,10 +124,34 @@ expr.2 <- expr.2[,-lt.10]
 # 5 - Write the combined dataframe to a PMN file
 
 
+##Write out 1-fold file
+f.1 <- file("mtb_exprs_1fold.txt", "w")
+header <- paste(c(colnames(expr.1)), collapse="\t")
+header <- paste("Name", header, sep="\t")
+write(header, f.1)
+
+write.table(expr.1, f.1, quote=F, row.names=T, col.names=F, sep="\t")
+close(f.1)
 
 
+##Write out 1.5 fold file
+f.1.5 <- file("mtb_exprs_1.5fold.txt", "w")
+header <- paste(c(colnames(expr.1.5)), collapse="\t")
+header <- paste("Name", header, sep="\t")
+write(header, f.1.5)
+
+write.table(expr.1.5, f.1.5, quote=F, row.names=T, col.names=F, sep="\t")
+close(f.1.5)
 
 
+##Write out 2 fold file
+f.2 <- file("mtb_exprs_2fold.txt", "w")
+header <- paste(c(colnames(expr.2)), collapse="\t")
+header <- paste("Name", header, sep="\t")
+write(header, f.2)
+
+write.table(expr.2, f.2, quote=F, row.names=T, col.names=F, sep="\t")
+close(f.2)
 
 
 
