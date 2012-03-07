@@ -58,3 +58,23 @@ operons_from_gene_pairs <- function(op.df, gene.cols){
   
   return(op.list)
 }
+
+op_list_to_df <- function(op.list){
+  #Takes a list of operons as produced by
+  #operons_from_gene_pairs and returns a dataframe
+  #with each gene and its operon ID.
+  #Params
+  #op.list - list of operons produced by operons_from_gene_pairs
+
+  df <- data.frame(operon_ID=c(), gene=c())
+  
+  for (i in c(1:length(op.list))){
+    genes <- op.list[[i]]
+    rows <- matrix(c(rep(i, length(genes)), genes), ncol=2)
+    df <- rbind(df, rows)
+  }
+  
+  colnames(df) <- c("operon_ID", "gene_ID")
+  
+  return(df)
+  }
