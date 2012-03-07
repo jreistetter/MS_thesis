@@ -18,8 +18,9 @@
 #   5. Assign a p-DNA edge between the regulator and all the operon members.
 #
 # Results:
-#   -DOOR has 917 operons as door_ops, by genes in door_genes
-#   -Microbes Online has 495 operons as microbes_ops, by genes in microbes_genes
+#   -DOOR has 917 operons with 2607 genes as door_ops, by genes in door_genes
+#   -Microbes Online has 496 operons with 1259 genes as microbes_ops, 
+#                     by genes in microbes_genes
 #
 #
 # Written by Joe Reistetter
@@ -109,6 +110,10 @@ while (i < nrow(mic_p_filtered)+1){
   i <- i+1
 }
 
+#Add last operon
+microbes_ops[[length(microbes_ops)+1]] <- 
+  unlist(c(mic_p_filtered[i-1,c(3,4)]))
+
 #For simplicity, the while loop doesn't check if a gene is already in an operon
 #before adding it. This removes duplicates. Based on algorithm, duplicates
 #are expected..,.,.. 
@@ -117,13 +122,18 @@ microbes_ops <- lapply(microbes_ops, unique)
 
 microbes_genes <- data.frame(operon_ID=c(), gene=c())
 
-for (op_id in names(microbes_ops)){
-  genes <- microbes_ops[[op_id]]
-  rows <- matrix(c(rep(op_id, length(genes)), genes), ncol=2)
+for (i in c(1:length(microbes_ops))){
+  genes <- microbes_ops[[i]]
+  rows <- matrix(c(rep(i, length(genes)), genes), ncol=2)
   microbes_genes <- rbind(microbes_genes, rows)
 }
 
 colnames(microbes_genes) <- c("operon_ID", "gene_ID")
+
+
+#Check to see if all the filtered gene IDs are in the operons
+sum(!(c(mic_p_filtered$SysName1, mic_p_filtered$SysName2) %in% microbes_genes$gene_ID))
+#0, yes
 
 
 # -load H37Rv annotation obtained from tbdb.org
