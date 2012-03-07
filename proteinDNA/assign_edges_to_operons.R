@@ -34,7 +34,7 @@ setwd("~/schoolDB/Dropbox/thesis_work/data/protein-DNA/")
 
 ###################################################
 #
-#DOOR data
+#                 DOOR data
 #
 ###################################################
 
@@ -56,7 +56,7 @@ for (operon in unique(door_genes$OperonID)){
 
 ###################################################
 #
-#Microbes Online data
+#           Microbes Online data
 #
 ###################################################
 
@@ -132,9 +132,40 @@ colnames(microbes_genes) <- c("operon_ID", "gene_ID")
 
 
 #Check to see if all the filtered gene IDs are in the operons
-sum(!(c(mic_p_filtered$SysName1, mic_p_filtered$SysName2) %in% microbes_genes$gene_ID))
+sum(!(c(mic_p_filtered$SysName1, mic_p_filtered$SysName2) 
+      %in% microbes_genes$gene_ID))
 #0, yes
 
+###################################################
+#
+#           TBDB data
+#
+###################################################
+
+#Not sure if going to use this operon data yet since not sure how it was made.
+#Keep code around for assigning regulators to targets.
+
+
+#OHSU WD
+#setwd("~/Dropbox/thesis_work/data/ChIP-Seq/")
+#laptop WD
+setwd("~/schoolDB/Dropbox/thesis_work/data/ChIP-Seq/")
+
+
+tbdb.reg_targ <- read.table("peaks_2012-01-06_18-35-16.tsv", sep="\t",
+                       head=T, stringsAsFactors=F, 
+                       colClasses=c("character", "character", "NULL","NULL","NULL",
+                                    "numeric", "numeric", "NULL","NULL","NULL")
+                       )
+head(tbdb.reg_targ)
+
+tbdb.operons <- read.table("tbdb_operons.txt", sep=",", head=T, stringsAsFactors=F,
+                      colClasses=c(rep("NULL",3), "numeric", "numeric",
+                                   "character", rep("NULL",5)),
+                      quote=""
+                      )
+
+nrow(tbdb.operons) == 2525 #Number of operons downloaded from tbdb.org
 
 # -load H37Rv annotation obtained from tbdb.org
 h37rv.annot <- read.table("tbdb_H37rv_annotation.txt", sep="\t", head=T, stringsAsFactors=F,
@@ -145,19 +176,17 @@ h37rv.annot <- read.table("tbdb_H37rv_annotation.txt", sep="\t", head=T, strings
 
 nrow(h37rv.annot) == 3999 #3999 is how many genes tbdb.org said were downloaded
 
-setwd("../protein-DNA/")
-
 # -use gene start/stop and operon start/stop coords to assign genes to operons
 #  do minus and plus strands separate
 library(IRanges)
 
 # Minus strand
-operons.minus <- operons[operons$Strand=="-",]
+tbdb.operons.minus <- tbdb.operons[tbdb.operons$Strand=="-",]
 genes.minus <- h37rv.annot[h37rv.annot$Strand=="-",]
 rownames(genes.minus) <- c(1:nrow(genes.minus))
 
-o.minus.r <- RangedData(ranges=IRanges(start = operons.minus$Start,
-                                    end = operons.minus$Stop),
+o.minus.r <- RangedData(ranges=IRanges(start = tbdb.operons.minus$Start,
+                                    end = tbdb.operons.minus$Stop),
                                     space = 1)
 g.minus.r <- RangedData(ranges=IRanges(start = genes.minus$Start,
                                        end = genes.minus$Stop),
@@ -175,12 +204,12 @@ minus.overlaps <- minus.overlaps[with(minus.overlaps, order(operon)),]
 
 
 # Positive strand
-operons.plus <- operons[operons$Strand=="+",]
+tbdb.operons.plus <- tbdb.operons[tbdb.operons$Strand=="+",]
 genes.plus <- h37rv.annot[h37rv.annot$Strand=="+",]
 rownames(genes.plus) <- c(1:nrow(genes.plus))
 
-o.plus.r <- RangedData(ranges=IRanges(start = operons.plus$Start,
-                                      end = operons.plus$Stop),
+o.plus.r <- RangedData(ranges=IRanges(start = tbdb.operons.plus$Start,
+                                      end = tbdb.operons.plus$Stop),
                        space = 1)
 g.plus.r <- RangedData(ranges=IRanges(start = genes.plus$Start,
                                       end = genes.plus$Stop),
@@ -209,7 +238,7 @@ get_op_regulators <- function(operon, df, reg_df){
 
 #Make sure that the splits worked
 nrow(h37rv.annot) == (nrow(genes.minus) + nrow(genes.plus))
-nrow(operons) == (nrow(operons.minus) + nrow(operons.plus))
+nrow(tbdb.operons) == (nrow(tbdb.operons.minus) + nrow(tbdb.operons.plus))
 
 
 #Now need to assign regulators to operons
