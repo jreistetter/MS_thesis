@@ -9,14 +9,91 @@
 #   the operon name, which isn't very useful for determining membership
 #   the length
 # 
+# Basic algorithm to assign p-DNA edges:
+#   1. Make a dataframe, each row is an Rv ID and its operon
+#   2. Make a list, with element IDs corresponding to operon IDs, 
+#     and the element value is a character vector of Rv IDs
+#   3. For each regulator, look up its targets' operon IDs
+#   4. Look up operon members in list
+#   5. Assign a p-DNA edge between the regulator and all the operon members.
+#
+Results:
+  -DOOR has 917 operons
 # Written by Joe Reistetter
 
-# -import both data
+# -import data
 
 #At OHSU Dropbox
 #setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
 #My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work/data/ChIP-Seq/")
+setwd("~/schoolDB/Dropbox/thesis_work/data/protein-DNA/")
+
+###################################################
+#
+#DOOR data
+#
+###################################################
+
+#Read in data
+door <- read.table("door_operons.txt", head=T, stringsAsFactors=F,
+                   sep="\t", quote="")
+
+#Extract gene-operon assignments
+door_genes <- door[,c(1,3)]
+
+#Store operon members in a list
+door_ops <- list()
+
+for (operon in unique(door_genes$OperonID)){
+  op_genes <- door_genes[door_genes$OperonID == operon,2]
+  door_ops[[as.character(operon)]] <- op_genes
+}
+
+
+###################################################
+#
+#Microbes Online data
+#
+###################################################
+
+#Note: pOp column is the probability that the two are in an operon together
+#     0 = not at all, 1 = absolutely in the same operon
+
+mic_online <- read.table("microbes_online_mtb_operons.txt", head=T,
+                         stringsAsFactor=F, sep="\t", quote="")
+mic_p_filtered <- mic_online[which(mic_online$pOp >= 0.9),]
+
+microbes_ops <- list()
+i <- 1
+op_id <- 1
+
+while (i < nrow(mic_p_filtered)+1){
+  print(i)
+  if(is.na(mic_p_filtered[i+1,1]) | is.na(mic_p_filtered[i,2])){
+    i <- i+1
+    op_id <- op_id+1
+    next
+  }
+  while(mic_p_filtered[i+1,1] == mic_p_filtered[i,2]){
+    print(i)
+    existing <- microbes_ops[[as.character(op_id)]]
+    these_genes <- c(mic_p_filtered[i,c(3,4)], mic_p_filtered[i+1,c(3,4)])
+    genes_add <- c(existing, these_genes)
+    microbes_ops[[as.character(op_id)]] <- genes_add
+    i <- i+1
+  }
+  i <- i+1
+  op_id <- op_id+1
+}
+
+
+
+for (i in c(1:nrow(mic_p_filtered))){
+  mic_p_filtered[]
+  
+  
+}
+
 
 # -load H37Rv annotation obtained from tbdb.org
 h37rv.annot <- read.table("tbdb_H37rv_annotation.txt", sep="\t", head=T, stringsAsFactors=F,

@@ -20,7 +20,7 @@ operonDB_path = """/Users/jreistetter/schoolDB/Dropbox/thesis_work\
 /data/protein-DNA/operonDB/mtb_scrape.txt"""
 
 save_path = """/Users/jreistetter/schoolDB/Dropbox/thesis_work\
-/data/protein-DNA/operonDB/operonDB_operons.txt"""
+/data/protein-DNA/operonDB/operonDB_h37Rv.txt"""
 
 lines = open(operonDB_path, 'r').readlines()
 
