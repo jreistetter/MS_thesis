@@ -73,6 +73,16 @@ while (i < nrow(mic_p_filtered)+1){
     op_id <- op_id+1
     next
   }
+    
+  
+  if(mic_p_filtered[i+1,1] != mic_p_filtered[i,2]){
+    op_id <- op_id+1
+    microbes_ops[[as.character(op_id)]] <- c(microbes_ops[[as.character(op_id)]],
+                                             unlist(c(mic_p_filtered[i,c(3,4)])))
+    i <- i+1
+    op_id <- op_id+1
+    next
+  }
   
   while(mic_p_filtered[i+1,1] == mic_p_filtered[i,2]){
 
@@ -82,17 +92,11 @@ while (i < nrow(mic_p_filtered)+1){
     microbes_ops[[as.character(op_id)]] <- genes_add
     i <- i+1
   }
-  i <- i+1
   op_id <- op_id+1
+  i <- i+1
 }
 
-
-
-for (i in c(1:nrow(mic_p_filtered))){
-  mic_p_filtered[]
-  
-  
-}
+microbes_ops <- lapply(microbes_ops, unique)
 
 
 # -load H37Rv annotation obtained from tbdb.org
