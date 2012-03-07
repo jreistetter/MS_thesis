@@ -17,8 +17,8 @@
 #   4. Look up operon members in list
 #   5. Assign a p-DNA edge between the regulator and all the operon members.
 #
-Results:
-  -DOOR has 917 operons
+# Results:
+#   -DOOR has 917 operons
 # Written by Joe Reistetter
 
 # -import data
@@ -68,16 +68,16 @@ i <- 1
 op_id <- 1
 
 while (i < nrow(mic_p_filtered)+1){
-  print(i)
   if(is.na(mic_p_filtered[i+1,1]) | is.na(mic_p_filtered[i,2])){
     i <- i+1
     op_id <- op_id+1
     next
   }
+  
   while(mic_p_filtered[i+1,1] == mic_p_filtered[i,2]){
-    print(i)
+
     existing <- microbes_ops[[as.character(op_id)]]
-    these_genes <- c(mic_p_filtered[i,c(3,4)], mic_p_filtered[i+1,c(3,4)])
+    these_genes <- unlist(c(mic_p_filtered[i,c(3,4)], mic_p_filtered[i+1,c(3,4)]))
     genes_add <- c(existing, these_genes)
     microbes_ops[[as.character(op_id)]] <- genes_add
     i <- i+1
