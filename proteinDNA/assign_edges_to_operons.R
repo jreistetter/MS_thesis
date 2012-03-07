@@ -18,7 +18,10 @@
 #   5. Assign a p-DNA edge between the regulator and all the operon members.
 #
 # Results:
-#   -DOOR has 917 operons
+#   -DOOR has 917 operons as door_ops, by genes in door_genes
+#   -Microbes Online has 495 operons as microbes_ops, by genes in microbes_genes
+#
+#
 # Written by Joe Reistetter
 
 # -import data
@@ -59,22 +62,31 @@ for (operon in unique(door_genes$OperonID)){
 #Note: pOp column is the probability that the two are in an operon together
 #     0 = not at all, 1 = absolutely in the same operon
 
+#Load data
 mic_online <- read.table("microbes_online_mtb_operons.txt", head=T,
                          stringsAsFactor=F, sep="\t", quote="")
+
+#Filter out operon predictions with pOp >= 0.9
 mic_p_filtered <- mic_online[which(mic_online$pOp >= 0.9),]
 
+#Initializes variables to use in loop that creates operons
 microbes_ops <- list()
 i <- 1
 op_id <- 1
 
+#Loop through each row of the filtered operon predictions.
+#Depending on the continuity of the operon, loop does
+#different things.
 while (i < nrow(mic_p_filtered)+1){
+  
+  #If there is an NA, skip that row
   if(is.na(mic_p_filtered[i+1,1]) | is.na(mic_p_filtered[i,2])){
     i <- i+1
     op_id <- op_id+1
     next
   }
     
-  
+  #If the operon is only 2 genes, add those 2 genes as a new operon
   if(mic_p_filtered[i+1,1] != mic_p_filtered[i,2]){
     op_id <- op_id+1
     microbes_ops[[as.character(op_id)]] <- c(microbes_ops[[as.character(op_id)]],
@@ -84,6 +96,7 @@ while (i < nrow(mic_p_filtered)+1){
     next
   }
   
+  #While the genes are continuous (in an operon), keep addding to new operon
   while(mic_p_filtered[i+1,1] == mic_p_filtered[i,2]){
 
     existing <- microbes_ops[[as.character(op_id)]]
@@ -96,7 +109,21 @@ while (i < nrow(mic_p_filtered)+1){
   i <- i+1
 }
 
+#For simplicity, the while loop doesn't check if a gene is already in an operon
+#before adding it. This removes duplicates. Based on algorithm, duplicates
+#are expected..,.,.. 
+
 microbes_ops <- lapply(microbes_ops, unique)
+
+microbes_genes <- data.frame(operon_ID=c(), gene=c())
+
+for (op_id in names(microbes_ops)){
+  genes <- microbes_ops[[op_id]]
+  rows <- matrix(c(rep(op_id, length(genes)), genes), ncol=2)
+  microbes_genes <- rbind(microbes_genes, rows)
+}
+
+colnames(microbes_genes) <- c("operon_ID", "gene_ID")
 
 
 # -load H37Rv annotation obtained from tbdb.org
