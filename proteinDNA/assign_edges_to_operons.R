@@ -111,17 +111,7 @@ ODB_genes <- op_list_to_df(ODB.op.list)
 save(ODB.op.list, file="./RData/ODB.op.list.RData")
 save(ODB_genes, file="./RData/ODB_genes.RData")
 
-###################################################
-#
-#           MycoRegNet Data (regulators and targets)
-#
-###################################################
 
-myco.pairs <- read.table("./MycoRegNet/mycoregnet_tbl1_parsed.txt",
-                       head=F, sep="\t", stringsAsFactors=F,
-                         col.names=c("regulator", "target"))
-
-save(myco.pairs, file="./RData/myco.pairs.RData")
 
 
 ###################################################

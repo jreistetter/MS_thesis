@@ -1,6 +1,7 @@
-# Script to parse out regulator-target pairs
+# Script to remove the gene names from TF targets listed in
 # table 1 of MycoRegNet article. Save them as a tab-delimited file
-# where first column is regulator, second column is target
+# where first column is regulator, second column is comma-delimited
+# list of its targets.
 # 
 # Written by Joe Reistetter
 
@@ -16,8 +17,7 @@ out_f = open(root_path+"mycoregnet_tbl1_parsed.txt", 'w')
 for line in lines:
     line = line.split('\t')
     reg = line[0]
-    targets = [chunk.strip().split(' ')[0] for chunk in line[1].split(',')]
-    for target in targets:
-        out_f.write('\t'.join([reg,target]) + '\n')
+    targets = ','.join([chunk.strip().split(' ')[0] for chunk in line[1].split(',')])
+    out_f.write('\t'.join([reg,targets]) + '\n')
 
 out_f.close()
