@@ -28,9 +28,12 @@
 # -import data
 
 #At OHSU Dropbox
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+#root_path <-"/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work"
 #My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work/data/protein-DNA/")
+root_path <- "~/schoolDB/Dropbox/thesis_work"
+
+setwd(paste(root_path, "/data/protein-DNA/", sep=""))
+source(paste(root_path, "/code/proteinDNA/pdna_funcs.R", sep=""))
 
 ###################################################
 #
@@ -46,13 +49,15 @@ door <- read.table("door_operons.txt", head=T, stringsAsFactors=F,
 door_genes <- door[,c(1,3)]
 
 #Store operon members in a list
-door_ops <- list()
+door.op.list <- list()
 
 for (operon in unique(door_genes$OperonID)){
   op_genes <- door_genes[door_genes$OperonID == operon,2]
-  door_ops[[as.character(operon)]] <- op_genes
+  door.op.list[[as.character(operon)]] <- op_genes
 }
 
+save(door.op.list, file="./RData/door.op.list.RData")
+save(door_genes, file="./RData/door_genes.RData")
 
 ###################################################
 #
@@ -70,86 +75,55 @@ mic_online <- read.table("microbes_online_mtb_operons.txt", head=T,
 #Filter out operon predictions with pOp >= 0.9
 mic_p_filtered <- mic_online[which(mic_online$pOp >= 0.9),]
 
-#Initializes variables to use in loop that creates operons
-microbes_ops <- list()
-i <- 1
-op_id <- 1
+microbes.op.list <- operons_from_gene_pairs(mic_p_filtered, c(3,4))
 
-#Loop through each row of the filtered operon predictions.
-#Depending on the continuity of the operon, loop does
-#different things.
-while (i < nrow(mic_p_filtered)+1){
-  
-  #If there is an NA, skip that row
-  if(is.na(mic_p_filtered[i+1,1]) | is.na(mic_p_filtered[i,2])){
-    i <- i+1
-    op_id <- op_id+1
-    next
-  }
-    
-  #If the operon is only 2 genes, add those 2 genes as a new operon
-  if(mic_p_filtered[i+1,1] != mic_p_filtered[i,2]){
-    op_id <- op_id+1
-    microbes_ops[[as.character(op_id)]] <- c(microbes_ops[[as.character(op_id)]],
-                                             unlist(c(mic_p_filtered[i,c(3,4)])))
-    i <- i+1
-    op_id <- op_id+1
-    next
-  }
-  
-  #While the genes are continuous (in an operon), keep addding to new operon
-  while(mic_p_filtered[i+1,1] == mic_p_filtered[i,2]){
-
-    existing <- microbes_ops[[as.character(op_id)]]
-    these_genes <- unlist(c(mic_p_filtered[i,c(3,4)], mic_p_filtered[i+1,c(3,4)]))
-    genes_add <- c(existing, these_genes)
-    microbes_ops[[as.character(op_id)]] <- genes_add
-    i <- i+1
-  }
-  op_id <- op_id+1
-  i <- i+1
-}
-
-#Add last operon
-microbes_ops[[length(microbes_ops)+1]] <- 
-  unlist(c(mic_p_filtered[i-1,c(3,4)]))
-
-#For simplicity, the while loop doesn't check if a gene is already in an operon
-#before adding it. This removes duplicates. Based on algorithm, duplicates
-#are expected..,.,.. 
-
-microbes_ops <- lapply(microbes_ops, unique)
-
-microbes_genes <- data.frame(operon_ID=c(), gene=c())
-
-for (i in c(1:length(microbes_ops))){
-  genes <- microbes_ops[[i]]
-  rows <- matrix(c(rep(i, length(genes)), genes), ncol=2)
-  microbes_genes <- rbind(microbes_genes, rows)
-}
-
-colnames(microbes_genes) <- c("operon_ID", "gene_ID")
-
+microbes_genes <- op_list_to_df(microbes.op.list)
 
 #Check to see if all the filtered gene IDs are in the operons
 sum(!(c(mic_p_filtered$SysName1, mic_p_filtered$SysName2) 
       %in% microbes_genes$gene_ID))
 #0, yes
 
+save(microbes.op.list, file="./RData/microbes.op.list.RData")
+save(microbes_genes, file="./RData/microbes_genes.RData")
+
 ###################################################
 #
-#           TBDB data
+#           ODB Data
+#
+###################################################
+
+ODB <- read.table("ODB_operons.txt", head=T, stringsAsFactors=F,
+                  sep="\t", quote="")
+
+#genes column contains a space delimited string of operon members
+#parse into list
+ODB.op.list <-  list()
+
+for (i in 1:nrow(ODB)){
+  genes.str <- ODB[i,]$genes
+  genes <- unlist(strsplit(genes.str, " ", fixed=T))
+  ODB.op.list[[i]] <- genes
+}
+
+ODB_genes <- op_list_to_df(ODB.op.list)
+
+save(ODB.op.list, file="./RData/ODB.op.list.RData")
+save(ODB_genes, file="./RData/ODB_genes.RData")
+
+
+
+
+###################################################
+#
+#           TBDB data (not used but saving code)
 #
 ###################################################
 
 #Not sure if going to use this operon data yet since not sure how it was made.
 #Keep code around for assigning regulators to targets.
 
-
-#OHSU WD
-#setwd("~/Dropbox/thesis_work/data/ChIP-Seq/")
-#laptop WD
-setwd("~/schoolDB/Dropbox/thesis_work/data/ChIP-Seq/")
+setwd(paste(root_path, "/data/ChIP-Seq/", sep=""))
 
 
 tbdb.reg_targ <- read.table("peaks_2012-01-06_18-35-16.tsv", sep="\t",
