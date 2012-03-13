@@ -9,6 +9,7 @@ root_path = "/Users/jreistetter/schoolDB/Dropbox/thesis_work/data/protein-DNA/My
 #OHSU path
 #root_path = "~/Dropbox/thesis_work"
 
+#Table 1
 path = root_path+"mycoregnet_tbl1_hand_cleaned.txt"
 lines = open(path, 'r').readlines()
 out_f = open(root_path+"mycoregnet_tbl1_parsed.txt", 'w')
@@ -21,3 +22,30 @@ for line in lines:
         out_f.write('\t'.join([reg,target]) + '\n')
 
 out_f.close()
+
+#Table 2
+path = root_path+"mycoregnet_tbl2_hand_cleaned.txt"
+#Read in lines, skip first header row
+lines = open(path, 'rU').readlines()[1:]
+out_f = open(root_path+"mycoregnet_tbl2_parsed.txt", 'w')
+
+for line in lines:
+	line = line.strip().split('\t')
+	regulator = line[0]
+	
+	#Some targets are part of an operon and have a third column listing
+	#the operon members, delimited by '-'.
+	if len(line) == 3:
+		targets = line[2].split('-')
+		
+		for target in targets:
+			out_f.write('\t'.join([regulator, target])+'\n')
+	
+	#If no operon associated, then it is just a regulator/target pair
+	else:
+		target = line[1]
+		out_f.write('\t'.join([regulator, target])+'\n')
+
+out_f.close()
+
+			
