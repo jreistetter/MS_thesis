@@ -117,11 +117,19 @@ save(ODB_genes, file="./RData/ODB_genes.RData")
 #
 ###################################################
 
-myco.pairs <- read.table("./MycoRegNet/mycoregnet_tbl1_parsed.txt",
+#Table 1 predicts regulators from orthologous genes in other species
+myco.pairs.ortho <- read.table("./MycoRegNet/mycoregnet_tbl1_parsed.txt",
                          head=F, sep="\t", stringsAsFactors=F,
                          col.names=c("regulator", "target"))
 
-save(myco.pairs, file="./RData/myco.pairs.RData")
+#Table 2 predicts regulators from conserved binding sites
+myco.pairs.TFBS<- read.table("./MycoRegNet/mycoregnet_tbl2_parsed.txt",
+                         head=F, sep="\t", stringsAsFactors=F,
+                         col.names=c("regulator", "target"))
+
+
+save(myco.pairs.ortho, file="./RData/myco.pairs.ortho.RData")
+save(myco.pairs.TFBS, file="./RData/myco.pairs.TFBS.RData")
 
 
 ###################################################
