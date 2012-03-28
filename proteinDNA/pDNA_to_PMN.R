@@ -35,11 +35,23 @@ load("mtbreglist.pairs.RData")
 load("myco.pairs.TFBS.RData")
 load("myco.pairs.ortho.RData")
 
-reg_target <- rbind(mtbreglist.pairs, myco.pairs.TFBS)
-reg_target <- rbind(reg_target, myco.pairs.ortho)
+reg_target.raw <- rbind(mtbreglist.pairs, myco.pairs.TFBS)
+reg_target.raw <- rbind(reg_target.raw, myco.pairs.ortho)
 
-nrow(reg_target) #584 pairs
+nrow(reg_target.raw) #584 pairs
 
+reg_target.raw <- as.data.frame(lapply(reg_target.raw, toupper),
+                                stringsAsFactors=F)
 
+#Remove duplicate edges, if any
+reg_target.raw$pair <- paste(reg_target.raw$regulator, 
+                         reg_target.raw$target, sep="")
+
+sum(duplicated(reg_target.raw$pair))
+#150
+
+reg_target <- reg_target.raw[!duplicated(reg_target.raw$pair),]
+
+nrow(reg_target.raw) - nrow(reg_target) == 150 #True, got all dupes
 
 
