@@ -3,6 +3,11 @@
 # 
 # Written by Joe Reistetter
 #
+# 
+#   Results:
+#     434 regulator/target pairs in total, 150 of which were duplicated
+# 
+# 
 # Workflow:
 #   Do this for each operon data set.
 # 
@@ -23,9 +28,9 @@
 #   a confidence score based on the number of DBs edge is in.
 
 #At OHSU Dropbox
-#root_path <-"/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work"
+root_path <-"/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work"
 #My laptop Dropbox
-root_path <- "~/schoolDB/Dropbox/thesis_work"
+#root_path <- "~/schoolDB/Dropbox/thesis_work"
 
 setwd(paste(root_path, "/data/protein-DNA/RData", sep=""))
 source(paste(root_path, "/code/proteinDNA/pdna_funcs.R", sep=""))
@@ -53,5 +58,24 @@ sum(duplicated(reg_target.raw$pair))
 reg_target <- reg_target.raw[!duplicated(reg_target.raw$pair),]
 
 nrow(reg_target.raw) - nrow(reg_target) == 150 #True, got all dupes
+
+###############################
+#
+#      DOOR
+#
+###############################
+
+
+
+load("door.op.list.RData")
+load("door_genes.RData")
+
+#Convert to uppercase
+door_genes <- as.data.frame(lapply(door_genes, toupper),
+                            stringsAsFactors=F)
+
+#Loop through regulator/targets and assign edges
+door.edges <- assign_pDNA_edge(reg_target, door_genes, door.op.list)
+
 
 
