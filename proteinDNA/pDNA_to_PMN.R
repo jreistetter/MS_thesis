@@ -6,7 +6,7 @@
 # 
 #   Results:
 #     434 regulator/target pairs in total, 150 of which were duplicated
-# 
+#     728 protein-DNA edges written out to H37Rv.pdna.list
 # 
 # Workflow:
 #   Do this for each operon data set.
@@ -110,6 +110,22 @@ ODB_genes <- as.data.frame(lapply(ODB_genes, toupper),
 ODB.edges <- assign_pDNA_edge(reg_target, ODB_genes, ODB.op.list)
 
 
+#Combine edges
+
+pDNA.edges.raw <- rbind(door.edges, microbes_online.edges)
+pDNA.edges.raw <- rbind(pDNA.edges.raw, ODB.edges)
+
+sum(duplicated(pDNA.edges.raw[,2]))
+#[1] 1313, most likely reg/targs without an operon
 
 
+#Remove dupes
+pDNA.edges <- pDNA.edges.raw[!duplicated(pDNA.edges.raw[,2]),]
+
+nrow(pDNA.edges.raw) - nrow(pDNA.edges) == 1313
+
+save(pDNA.edges, file="pDNA.edges.RData")
+
+write.table(pDNA.edges, file="../H37Rv.pdna.list", quote=F, sep="\t", row.names=F,
+            col.names=F)
 
