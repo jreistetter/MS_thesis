@@ -1,28 +1,16 @@
-# Script to take regulator-target lists and operon data from tbdb.org
-# and parse it into a list of protein-DNA interactions for use in the PMN software.
+# Script to take operon raw data from DOOR, Microbes Online, ODB, MycoRegNet,
+# and parse into R objects for use in assigning protein-DNA edges for PMN.
 # 
-# The regulator-target data has the start and stop coords of the peak
-# 
-# The operon data has:
-#   the start and stop coords of the operon
-#   the strand of the operon
-#   the operon name, which isn't very useful for determining membership
-#   the length
-# 
-# Basic algorithm to assign p-DNA edges:
-#   1. Make a dataframe, each row is an Rv ID and its operon
-#   2. Make a list, with element IDs corresponding to operon IDs, 
-#     and the element value is a character vector of Rv IDs
-#   3. For each regulator, look up its targets' operon IDs
-#   4. Look up operon members in list
-#   5. Assign a p-DNA edge between the regulator and all the operon members.
+# Also parses in regulator-target pairs from MycoRegNet (article)
 #
 # Results:
 #   -DOOR has 917 operons with 2607 genes as door_ops, by genes in door_genes
 #   -Microbes Online has 496 operons with 1259 genes as microbes_ops, 
 #                     by genes in microbes_genes
-#
-#
+#   -ODB had 39 operons with 99 genes as ODB.op.list, ODB_genes
+#   -MycoRegNet has 180 reg-target pairs from TF predictions, 223 from
+#   orthologous predictions from other species.
+#   
 # Written by Joe Reistetter
 
 # -import data
