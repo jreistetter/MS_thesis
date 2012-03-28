@@ -78,4 +78,19 @@ door_genes <- as.data.frame(lapply(door_genes, toupper),
 door.edges <- assign_pDNA_edge(reg_target, door_genes, door.op.list)
 
 
+###############################
+#
+#      Microbes Online
+#
+###############################
+
+load("microbes.op.list.RData")
+load("microbes_genes.RData")
+
+microbes_genes <- as.data.frame(lapply(microbes_genes, toupper),
+                            stringsAsFactors=F)
+
+debug(assign_pDNA_edge)
+microbes_online.edges <- assign_pDNA_edge(reg_target, microbes_genes, microbes.op.list)
+
 
