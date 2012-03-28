@@ -86,6 +86,21 @@ good.2.idx <- grep("rv", dat.1clean[,2], ignore.case=TRUE)
 
 mtbreglist.pairs <- dat.1clean[good.2.idx,]
 
+#Some of the regulators regulate themselves. No feedback loops
+#in Bayesian networks so remove those pairs.
+sum(mtbreglist.pairs[,1]==mtbreglist.pairs[,2])
+#[1] 9  --- 9 self-regulators
+
+self.reg.idx <- which(mtbreglist.pairs[,1]==mtbreglist.pairs[,2])
+length(self.reg.idx)
+#[1] 9
+
+mtbreglist.pairs <- mtbreglist.pairs[-self.reg.idx,]
+
+sum(mtbreglist.pairs[,1]==mtbreglist.pairs[,2])
+#[1] 0
+
 colnames(mtbreglist.pairs) <- c("regulator", "target")
 
+save(mtbreglist.pairs, file="./data/protein-DNA/RData/mtbreglist.pairs.RData")
 
