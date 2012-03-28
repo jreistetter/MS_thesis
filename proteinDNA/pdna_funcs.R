@@ -65,13 +65,13 @@ operons_from_gene_pairs <- function(op.df, gene.cols){
     #If there is an NA, skip that row
     if(is.na(op.df[i+1,gene.cols[1]]) | is.na(op.df[i,gene.cols[2]])){
       i <- i+1
-      op_id <- op_id+1
+      #op_id <- op_id+1
       next
     }
     
     #If the operon is only 2 genes, add those 2 genes as a new operon
     if(op.df[i+1,gene.cols[1]] != op.df[i,gene.cols[2]]){
-      op_id <- op_id+1
+      #op_id <- op_id+1
       op.list[[as.character(op_id)]] <- c(op.list[[as.character(op_id)]],
                                                unlist(c(op.df[i,gene.cols])))
       i <- i+1
@@ -93,7 +93,7 @@ operons_from_gene_pairs <- function(op.df, gene.cols){
   }
   
   #Add last operon
-  op.list[[length(op.list)+1]] <- 
+  op.list[[as.character(op_id)]] <- 
     unlist(c(op.df[i-1,gene.cols]))
   
   #For simplicity, the while loop doesn't check if a gene is already in an operon
