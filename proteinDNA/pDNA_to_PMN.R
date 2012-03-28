@@ -90,7 +90,26 @@ load("microbes_genes.RData")
 microbes_genes <- as.data.frame(lapply(microbes_genes, toupper),
                             stringsAsFactors=F)
 
-debug(assign_pDNA_edge)
 microbes_online.edges <- assign_pDNA_edge(reg_target, microbes_genes, microbes.op.list)
+
+
+###############################
+#
+#      ODB
+#
+###############################
+
+load("ODB.op.list.RData")
+load("ODB_genes.RData")
+
+
+
+ODB_genes <- as.data.frame(lapply(ODB_genes, toupper),
+                           stringsAsFactors=F)
+
+ODB.edges <- assign_pDNA_edge(reg_target, ODB_genes, ODB.op.list)
+
+
+
 
 
