@@ -91,7 +91,7 @@ ODB.op.list <-  list()
 for (i in 1:nrow(ODB)){
   genes.str <- ODB[i,]$genes
   genes <- unlist(strsplit(genes.str, " ", fixed=T))
-  ODB.op.list[[i]] <- genes
+  ODB.op.list[[as.character(i)]] <- genes
 }
 
 ODB_genes <- op_list_to_df(ODB.op.list)
