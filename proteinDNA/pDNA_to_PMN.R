@@ -164,6 +164,8 @@ pDNA.edges <- add_degrees(pDNA.edges, node_degrees)
 
 #Assign forward direction to edge, see PMN docs
 pDNA.edges$direction <- 1
+pDNA.edges$protein <- toupper(pDNA.edges$protein)
+pDNA.edges$gene <- toupper(pDNA.edges$gene)
 
 save(pDNA.edges, file="pDNA.edges.RData")
 

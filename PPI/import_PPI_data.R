@@ -21,10 +21,10 @@ conf_filter = 900
 
 
 #OHSU
-#setwd("~/Dropbox")
+setwd("~/Dropbox")
 
 #Laptop
-setwd("~/schoolDB/Dropbox")
+#setwd("~/schoolDB/Dropbox")
 
 #Goto PPI data dir
 setwd("./thesis_work/data/PPI/")
@@ -145,5 +145,9 @@ nrow(ppi.edges.dupes) - nrow(ppi.edges)
 
 #Assign direction = 0, undirected (see PMN docs)
 ppi.edges$direction <- 0
+
+ppi.edges$e1 <- toupper(ppi.edges$e1)
+ppi.edges$e2 <- toupper(ppi.edges$e2)
+
 write.table(ppi.edges, file="mtb.pp.list", quote=F, sep="\t",
             col.names=F, row.names=F)
