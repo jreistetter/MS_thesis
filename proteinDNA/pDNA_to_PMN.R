@@ -124,6 +124,47 @@ pDNA.edges <- pDNA.edges.raw[!duplicated(pDNA.edges.raw[,2]),]
 
 nrow(pDNA.edges.raw) - nrow(pDNA.edges) == 1313
 
+pDNA.edges <- as.data.frame(pDNA.edges, stringsAsFactors=F)
+#Calculate confidence score based on PMN paper
+
+
+#initialize list to hold degrees
+node_degrees <- vector("list", length(unique(pDNA.edges[,1])))
+names(node_degrees) <- unique(pDNA.edges[,1])
+node_degrees <- lapply(node_degrees, function(x) x <- 0)
+
+#Add 1 to the degree of each protein in an edge for STRING
+for (node in pDNA.edges[,1]){
+  node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
+}
+
+
+#From paper, the confidence score for an edge is given as:
+#
+#  p = 1 / 2 + exp(-0.2x + 5)
+#
+#
+
+calc_conf <- function(node_degree){
+  p <- 1 / (2 + exp(-0.2*node_degree + 5))
+  return(p)
+}
+
+pDNA.edges$conf <- 0
+add_degrees <- function(df, node_degrees){
+  for (i in c(1:nrow(df))){
+    degree <- node_degrees[[df[i,1]]]
+    df[i,3] <- calc_conf(degree)
+  }
+  
+  return(df)
+}
+
+pDNA.edges <- add_degrees(pDNA.edges, node_degrees)
+
+#Assign forward direction to edge, see PMN docs
+pDNA.edges$direction <- 1
+
 save(pDNA.edges, file="pDNA.edges.RData")
 
 write.table(pDNA.edges, file="../H37Rv.pdna.list", quote=F, sep="\t", row.names=F,
