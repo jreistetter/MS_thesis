@@ -1,0 +1,8 @@
+3/29/2012
+-Run just on the small list of regulators
+-Added TF file
+-Took TFs out of regulators
+-Upped number of modules to 10
+
+mkdir out;
+perl LearnPMN_web.pl -k 4 -s 10 -d y -C y -e initial_dat/mtb_exprs_1.5fold.txt -r initial_dat/initial.regulators -j out/init2 -u n -i initial_dat/mtb.pp.list -I initial_dat/H37Rv.pdna.list -p 1 -c toy.conf -t initial_dat/H37Rv.tfs;
