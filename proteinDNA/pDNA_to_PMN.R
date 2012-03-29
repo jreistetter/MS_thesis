@@ -172,3 +172,11 @@ save(pDNA.edges, file="pDNA.edges.RData")
 write.table(pDNA.edges, file="../H37Rv.pdna.list", quote=F, sep="\t", row.names=F,
             col.names=F)
 
+
+#Write out the transcription factors file, which are all regulators in the pDNA network.
+tfs <- unique(pDNA.edges$protein)
+
+write.table(tfs, file="../H37Rv.tfs", quote=F, sep="\t", row.names=F, col.names=F)
+
+
+
