@@ -152,7 +152,7 @@ remove_bad_spots <- function(ma_list){
   probe.weights <- ma_list$weights
   probe.weights[probe.weights == 0] <- NA
   cleaned <- probe.weights * ma_list$M
-  rownames(cleaned) <- ma_list$genes$ORF
+  rownames(cleaned) <- as.character(ma_list$genes$ORF)
   return(as.data.frame(cleaned))
   
 }
@@ -260,6 +260,37 @@ dev.off()
 gpl.8561.rv.M <- remove_bad_spots(gpl.8561.bc.norm.rv)
 gpl.8561.rv.M.avg <- avg_probes(gpl.8561.rv.M, gpl.8561.bc.norm.rv$genes$ORF)
 gpl.8561.disc <- discretize(gpl.8561.rv.M.avg)
+
+#Calculate CoV for genes with multiple probes
+
+#Need to override function because gene IDs stored differently
+probe_CV <- function(gene_id, df){
+  #get intensities for all arrays of that gene
+  probes.M <- df[rownames(df) == gene_id,]
+  coef_vars <- apply(probes.M, 2, coef_var)
+  return(coef_vars)
+}
+
+
+replicated.8561 <- unique(rownames(gpl.8561.rv.M)[duplicated(rownames(gpl.8561.rv.M))])
+coefs.8561 <- sapply(replicated.8561, probe_CV, df=gpl.8561.rv.M)
+coefs.mean.8561 <- apply(coefs.8561, 2, mean)
+coefs.median.8561 <- apply(coefs.8561, 2, median)
+
+#Count the number of genes that would be excluded at CoV < 1
+excl.8561 <- sum(unlist(lapply(coefs.8561, function(x) sum(x > 1, na.rm=T)))) #6,841 excluded
+
+excl.8561.2 <- sum(unlist(lapply(coefs.8561, function(x) sum(x > 2, na.rm=T)))) #3,994 excluded
+
+#Total number of genes:
+dim(coefs.8561)[1] * dim(coefs.8561)[2] 
+#20,960, so roughly 30% would be excluded at 1 threshold
+
+#Look at CoV on a per-gene basis to see if some gene are all bad
+
+gene.cov.8561 <- apply(coefs.8561, 2, function(x) sum(x > 1, na.rm=T))
+max(gene.cov.8561) #28
+
 
 
 #######
