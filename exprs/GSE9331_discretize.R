@@ -301,6 +301,20 @@ coefs.4293 <- sapply(replicated.4293, probe_CV, df=gpl.4293.rv.M)
 coefs.mean.4293 <- apply(coefs.4293, 2, mean)
 coefs.median.4293 <- apply(coefs.4293, 2, median)
 
+#Count the number of genes that would be excluded at CoV < 1
+excl.4293 <- sum(unlist(lapply(coefs.4293, function(x) sum(x > 1, na.rm=T)))) #3595
+
+excl.4293.2 <- sum(unlist(lapply(coefs.4293, function(x) sum(x > 2, na.rm=T)))) #1823 excluded
+
+#Total number of genes:
+dim(coefs.4293)[1] * dim(coefs.4293)[2] 
+#42,900, so roughly 10% would be excluded at 1 threshold
+
+#Look at CoV on a per-gene basis to see if some gene are all bad
+
+gene.cov.4293 <- apply(coefs.4293, 2, function(x) sum(x > 1, na.rm=T))
+max(gene.cov.4293) #9
+
 png("GPL4293_probe_mean_CoV.png")
 boxplot(coefs.mean.4293, 
         main = "Gene-wise mean coefficient of variation\nProbe log(R/G)\nGPL4293 11 arrays 3897 genes",
