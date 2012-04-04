@@ -104,7 +104,7 @@ gpl.4291.bc.norm <- normalizeWithinArrays(gpl.4291.bc, method="loess")
 gpl.4291.rv.idx <- grepl(pattern="Rv", x=gpl.4291.rg$genes$Name, fixed=T)
 sum(gpl.4291.rv.idx) #16,068 features represented
 gpl.4291.bc.norm.rv <- gpl.4291.bc.norm[gpl.4291.rv.idx,]
-length(unique(gpl.4291.bc.norm.rv$genes$Name)) #4595 genes
+length(unique(gpl.4291.bc.norm.rv$genes$Name)) #3897 genes
 
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
@@ -162,6 +162,17 @@ replicated.4291 <- unique(gpl.4291.clean[duplicated(gpl.4291.clean$gene),]$gene)
 coefs.4291 <- sapply(replicated.4291, probe_CV, df=gpl.4291.rv.M)
 coefs.mean.4291 <- apply(coefs.4291, 2, mean)
 coefs.median.4291 <- apply(coefs.4291, 2, median)
+
+#Count the number of genes that would be excluded at CoV < 1
+excl.4291 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 1, na.rm=T)))) #17,956 excluded
+
+excl.4291.2 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 2, na.rm=T)))) #10,647 excluded
+
+#Total number of genes:
+dim(coefs.4291)[1] * dim(coefs.4291)[2] 
+#120,807, so roughly 10% would be excluded at 1 threshold
+
+
 
 png("GPL4291_probe_mean_CoV.png")
 boxplot(coefs.mean.4291, 
