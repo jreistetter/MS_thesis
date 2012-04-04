@@ -60,7 +60,7 @@ probe_CV <- function(gene_id, df){
 }
 
 coef_var <- function(vals){
-  coef <- sd(vals) / mean(vals)
+  coef <- sd(vals, na.rm=T) / mean(vals, na.rm=T)
   return(coef)
 }
 
