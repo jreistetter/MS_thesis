@@ -164,14 +164,18 @@ coefs.mean.4291 <- apply(coefs.4291, 2, mean)
 coefs.median.4291 <- apply(coefs.4291, 2, median)
 
 #Count the number of genes that would be excluded at CoV < 1
-excl.4291 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 1, na.rm=T)))) #17,956 excluded
+excl.4291 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 1, na.rm=T)))) #20,388 excluded
 
-excl.4291.2 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 2, na.rm=T)))) #10,647 excluded
+excl.4291.2 <- sum(unlist(lapply(coefs.4291, function(x) sum(x > 2, na.rm=T)))) #12,147 excluded
 
 #Total number of genes:
 dim(coefs.4291)[1] * dim(coefs.4291)[2] 
-#120,807, so roughly 10% would be excluded at 1 threshold
+#120,807, so roughly 20% would be excluded at 1 threshold
 
+#Look at CoV on a per-gene basis to see if some gene are all bad
+
+gene.cov.4291 <- apply(coefs.4291, 2, function(x) sum(x > 1, na.rm=T))
+max(gene.cov.4291) #17
 
 
 png("GPL4291_probe_mean_CoV.png")
