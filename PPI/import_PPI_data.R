@@ -63,6 +63,24 @@ colnames(hybrid) <- c("hybrid1", "hybrid2")
 #Filter for confidence score defined at top of script
 string.filtered <- string[string$conf >= conf_filter, c(1,2)]
 
+##Check how many genes overlap between data sets
+
+hybrid.genes <- unique(c(hybrid$hybrid1, hybrid$hybrid2))
+length(hybrid.genes)
+#[1] 2907
+string.filtered.genes <- unique(c(string.filtered$string1, string.filtered$string2))
+length(string.filtered.genes)
+#[1] 1678
+length(intersect(hybrid.genes, string.filtered.genes))
+#[1] 1203
+
+string.700 <- string[string$conf >= 700, c(1,2)]
+string.700.genes <- unique(c(string.700$string1, string.700$string2))
+length(string.700.genes)
+#[1] 3301
+length(intersect(hybrid.genes, string.700.genes))
+#[1] 2424
+
 ##########################################################
 # 3. Calculate the confidence score for each edge
 ##########################################################
@@ -71,11 +89,15 @@ string.filtered <- string[string$conf >= conf_filter, c(1,2)]
 #are in common
 
 string.filtered$edge_id <- paste(string.filtered$string1, string.filtered$string2, sep=",")
+string.700$edge_id <- paste(string.700$string1, string.700$string2, sep=",")
 hybrid$edge_id <- paste(hybrid$hybrid1, hybrid$hybrid2, sep=",")
 
 #Check how many edges are found in both data sets
 sum(string.filtered$edge_id %in% hybrid$edge_id)
 #20 found in both
+
+sum(string.700$edge_id %in% hybrid$edge_id)
+#51
 
 string.filtered[,1] <- as.character(string.filtered[,1])
 string.filtered[,2] <- as.character(string.filtered[,2])
