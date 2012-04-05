@@ -105,27 +105,33 @@ string.filtered[,2] <- as.character(string.filtered[,2])
 #At this point looks like adding a penalty for only being in one dataset
 #will affect only a small part of the network, so not going to do that.
 
+##USE 700 CONFIDENCE FILTER
+colnames(hybrid)[1:2] <- c("e1", "e2")
+colnames(string.700)[1:2] <- c("e1", "e2")
+
+ppi.edges <- rbind(hybrid, string.700)
+nrow(ppi.edges)
+#[1] 45136
+ppi.edges <- ppi.edges[!duplicated(ppi.edges$edge_id),c(1,2)]
+nrow(ppi.edges)
+#[1] 45085, took out 51 dupes
+
 #Use combined degree from the two networks
-node_ids <- unique(c(string.filtered$string1, string.filtered$string2, 
-                     hybrid$hybrid1, hybrid$hybrid2))
+node_ids <- unique(c(ppi.edges$e1, ppi.edges$e2))
 
 length(node_ids)
-#3382 genes
+#3784 genes
 
 #initialize list to hold degrees
 node_degrees <- vector("list", length(node_ids))
 names(node_degrees) <- node_ids
 node_degrees <- lapply(node_degrees, function(x) x <- 0)
 
-#Add 1 to the degree of each protein in an edge for STRING
-for (node in c(string.filtered$string1, string.filtered$string2)){
+#Add 1 to the degree of each protein in an edge
+for (node in c(ppi.edges$e1, ppi.edges$e2)){
   node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
 }
 
-#Add 1 to the degree of each protein in an 2-hybrid edge
-for (node in c(hybrid$hybrid1, hybrid$hybrid2)){
-  node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
-}
 
 #From paper, the confidence score for an edge is given as:
 #
@@ -138,33 +144,20 @@ calc_conf <- function(node_degree){
   return(p)
 }
 
-string.filtered$conf <- 0
-add_degrees <- function(df, node_degrees){
+calc_confs <- function(df, node_degrees){
   for (i in c(1:nrow(df))){
     e1.d <- node_degrees[[df[i,1]]]
     e2.d <- node_degrees[[df[i,2]]]
     degree <- max(e1.d, e2.d)
-    df[i,4] <- calc_conf(degree)
+    df[i,3] <- calc_conf(degree)
   }
   
   return(df)
 }
 
-string.conf <- add_degrees(string.filtered, node_degrees)
-hybrid.conf <- add_degrees(hybrid, node_degrees)
+ppi.edges$conf <- 0
 
-colnames(hybrid.conf) <- c("e1", "e2", "edge_id", "conf")
-colnames(string.conf) <- c("e1", "e2", "edge_id", "conf")
-
-ppi.edges.dupes <- rbind(hybrid.conf[,c(1,2,4)], string.conf[,c(1,2,4)])
-
-dupes <- duplicated(ppi.edges.dupes)
-
-ppi.edges <- ppi.edges.dupes[!dupes,]
-
-nrow(ppi.edges.dupes) - nrow(ppi.edges)
-#Should equal 20, the number of edges in common between
-#the two networks
+ppi.edges <- calc_confs(ppi.edges, node_degrees)
 
 #Assign direction = 0, undirected (see PMN docs)
 ppi.edges$direction <- 0
