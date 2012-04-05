@@ -44,7 +44,8 @@ string_raw <- read.table("./STRING/STRING.H37Rv.txt", stringsAsFactors=F)
 string_raw$string1 <- sapply(string_raw[,1], function(x) strsplit(x, ".", fixed=T)[[1]][2])
 string_raw$string2 <- sapply(string_raw[,2], function(x) strsplit(x, ".", fixed=T)[[1]][2])
 
-string <- data.frame(string1=string_raw$string1, string2=string_raw$string2, conf=string_raw[,3])
+string <- data.frame(string1=string_raw$string1, string2=string_raw$string2, conf=string_raw[,3],
+                     stringsAsFactors=F)
 
 #Read in the bacterial PPIs. First two rows are title and column labels, skip those.
 #Only need first two columns which are the interacting proteins
