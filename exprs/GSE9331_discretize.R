@@ -226,7 +226,7 @@ sum(gpl.4293.rv.idx) #24,126 probes
 gpl.4293.bc.norm.rv <- gpl.4293.bc.norm[gpl.4293.rv.idx,]
 length(unique(gpl.4293.bc.norm.rv$genes$Name)) #3900 genes
 
-save(gpl.4291.bc.norm.rv, file="gpl.4291.bc.norm.rv.RData")
+save(gpl.4293.bc.norm.rv, file="gpl.4293.bc.norm.rv.RData")
 
 #Realizing that there are multiple spots for each gene. Will need to average
 #the ratios or deal with it in some way.
