@@ -111,11 +111,6 @@ dev.off()
 
 
 
-
-
-
-
-
 ######################################################
 #
 #         GPL 4293
@@ -123,33 +118,66 @@ dev.off()
 #
 ######################################################
 
-replicated.4293 <- unique(gpl.4293.rv.M[duplicated(gpl.4293.rv.M$gene),]$gene)
-coefs.4293 <- sapply(replicated.4293, probe_CV, df=gpl.4293.rv.M)
-coefs.mean.4293 <- apply(coefs.4293, 2, mean)
-coefs.median.4293 <- apply(coefs.4293, 2, median)
+path.4293 <- paste(db, "data/exprs/GSE9331/gpl.4293.bc.norm.rv.RData", sep="")
 
-#Count the number of genes that would be excluded at CoV < 1
-excl.4293 <- sum(unlist(lapply(coefs.4293, function(x) sum(x > 1, na.rm=T)))) #3595
+load(path.4293)
 
-excl.4293.2 <- sum(unlist(lapply(coefs.4293, function(x) sum(x > 2, na.rm=T)))) #1823 excluded
+gpl.4293.rv.M <- remove_bad_spots(gpl.4293.bc.norm.rv)
+gpl.4293.rv.A <- remove_bad_spots(gpl.4293.bc.norm.rv, type="A")
 
-#Total number of genes:
-dim(coefs.4293)[1] * dim(coefs.4293)[2] 
-#42,900, so roughly 10% would be excluded at 1 threshold
 
-#Look at CoV on a per-gene basis to see if some gene are all bad
+#Get coefficient of variation of ratios of the the replicated probes
+#Remove bad arrays first
+bad.arrays <- c("GSM237676.gpr.gz")
 
-gene.cov.4293 <- apply(coefs.4293, 2, function(x) sum(x > 1, na.rm=T))
-max(gene.cov.4293) #9
+good.4293.col.idx <- which(!(colnames(gpl.4293.rv.M) %in% bad.arrays))
+gpl.4293.M <- gpl.4293.rv.M[,good.4293.col.idx]
+gpl.4293.A <- gpl.4293.rv.A[,good.4293.col.idx]
 
-png("GPL4293_probe_mean_CoV.png")
-boxplot(coefs.mean.4293, 
-        main = "Gene-wise mean coefficient of variation\nProbe log(R/G)\nGPL4293 11 arrays 3897 genes",
-        ylab="Mean CoV")
-dev.off()
+gpl.4293.M$gene <- rownames(gpl.4293.M)
+gpl.4293.A$gene <- rownames(gpl.4293.A)
 
-png("GPL4293_probe_median_CoV.png")
-boxplot(coefs.median.4293, 
-        main = "Gene-wise median coefficient of variation\nProbe log(R/G)\nGPL4293 11 arrays 3897 genes",
-        ylab="Median CoV")
-dev.off()
+replicated.4293 <- unique(gpl.4293.M[duplicated(gpl.4293.M$gene),]$gene)
+coefs.4293 <- sapply(replicated.4293, probe_CV, df=gpl.4293.M)
+mean.A.4293 <- sapply(replicated.4293, probe_mean_A, df=gpl.4293.A)
+mean.M.4293 <- sapply(replicated.4293, probe_mean_A, df=gpl.4293.M)
+
+
+#########
+#
+#     Plots of CV vs M and A
+#
+#########
+
+#CV probably isn't a good measure to filter genes with technical replicate probes,
+#these plots will show that
+par(mfrow=c(2,2))
+
+#One huge outlier to remove first
+big_outlier <- which(unlist(coefs.4293) > 500,000)
+
+#Plots of all the CVs vs M and A
+plot(unlist(mean.A.4293)[-big_outlier], unlist(coefs.4293)[-big_outlier],
+     main='CV as a function of A\nGPL4293',
+     xlab='1/2 * log2(R*G)',
+     ylab='CV')
+
+#This plot shows that the extreme values are all near 0
+#which makes sense given CV = SD/mean
+plot(unlist(mean.M.4293)[-big_outlier], unlist(coefs.4293)[-big_outlier],
+     main = 'CV as a function of log2 (R/G)\nGPL4293',
+     xlab='log2(R/G)',
+     ylab = 'CV')
+
+#Filter out extreme values to see if this trend is true across the data
+no_outliers.4293 <- which(abs(unlist(coefs.4293))<10)
+
+plot(unlist(mean.A.4293)[no_outliers.4293], unlist(coefs.4293)[no_outliers.4293],
+     main = 'CV as a function of A\nFiltered CV < 10\nGPL4293',
+     xlab='1/2 * log2(R*G)',
+     ylab = 'CV')
+
+plot(unlist(mean.M.4293)[no_outliers.4293], unlist(coefs.4293)[no_outliers.4293],
+     main = 'CV as a function of log2 (R/G)\nFiltered CV < 10\nGPL4293',
+     xlab='log2(R/G)',
+     ylab = 'CV')
