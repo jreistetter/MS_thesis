@@ -106,6 +106,8 @@ sum(gpl.4291.rv.idx) #16,068 features represented
 gpl.4291.bc.norm.rv <- gpl.4291.bc.norm[gpl.4291.rv.idx,]
 length(unique(gpl.4291.bc.norm.rv$genes$Name)) #3897 genes
 
+save(gpl.4291.bc.norm.rv, file="../gpl.4291.bc.norm.rv.RData")
+
 #Redo the MA plots and see if artifacts disappear
 dir.create("./QA/postnormMA_RVfiltered")
 plotMA3by2(gpl.4291.bc.norm.rv, path="./QA/postnormMA_RVfiltered",
@@ -262,6 +264,8 @@ gpl.4293.rv.idx <- grepl(pattern="Rv", x=gpl.4293.rg$genes$Name, fixed=T)
 sum(gpl.4293.rv.idx) #24,126 probes
 gpl.4293.bc.norm.rv <- gpl.4293.bc.norm[gpl.4293.rv.idx,]
 length(unique(gpl.4293.bc.norm.rv$genes$Name)) #3900 genes
+
+save(gpl.4291.bc.norm.rv, file="gpl.4291.bc.norm.rv.RData")
 
 #Realizing that there are multiple spots for each gene. Will need to average
 #the ratios or deal with it in some way.
