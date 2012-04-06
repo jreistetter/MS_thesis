@@ -52,6 +52,14 @@ discretize <- function(df, fold=1.5){
   return(disc.df)
 }
 
+probe_mean_A <- function(gene_id, df){
+  #get intensities for all arrays of that gene
+  probes.A <- df[df$gene == gene_id,1:(ncol(df)-1)]
+  mean.A <- apply(probes.A, 2, mean)
+  return(mean.A)
+}
+
+
 probe_CV <- function(gene_id, df){
   #get intensities for all arrays of that gene
   probes.M <- df[df$gene == gene_id,1:(ncol(df)-1)]
