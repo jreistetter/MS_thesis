@@ -72,7 +72,7 @@ remove_bad_spots <- function(ma_list, type="M"){
   }
   
   if (type=="A"){
-    cleaned <- probe.weights * ma_list$M
+    cleaned <- probe.weights * ma_list$A
   }
   rownames(cleaned) <- ma_list$genes$Name
   return(as.data.frame(cleaned))
