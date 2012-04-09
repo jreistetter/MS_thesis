@@ -11,9 +11,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
-#My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work")
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+##My laptop Dropbox
+#setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
 #setwd("./data/exprs/GSE8839")
@@ -89,4 +89,73 @@ g.8561.rg <- read.maimages(g.8561.targets,
                              columns=g.8561.cols,
                              wt.fun=flagged,
                              path="./data/exprs/GSE8839/GSE8839_RAW")
+
+g.8561.gal <- readGAL("./data/exprs/GSE8839/SMD_print_498.gal")
+
+colnames(g.8561.gal)[5] <- "Reporter.Name"
+#Generate a Layout object for the background correction and normalization
+g.8561.rg$genes <- merge(g.8561.annot, g.8561.rg$genes, 
+                         by.x = "ID", by.y="ID_REF", all.y=T)
+g.8561.rg$printer <- getLayout(g.8561.gal)
+
+##Now that the data is read in, do some QA/QC by looking at MA plots
+dir.create("./data/exprs/GSE8839/GPL8561")
+dir.create("./data/exprs/GSE8839/GPL8561/QA")
+dir.create("./data/exprs/GSE8839/GPL8561/QA/prenormMA")
+plotMA3by2(g.8561.rg, path="./data/exprs/GSE8839/GPL8561/QA/prenormMA", 
+           main=paste(g.8561.targets$FileName, g.8561.targets$Cy5, paste=" - "))
+
+
+#Normalize the arrays, may have to remove some if the artifacts remain
+g.8561.bc <- backgroundCorrect(g.8561.rg, method="normexp", offset=50)
+g.8561.bc.norm <- normalizeWithinArrays(g.8561.bc, method="loess")
+
+#Need to filter so that only RV genes are present
+g.8561.rv.idx <- grepl(pattern="RV", x=g.8561.rg$genes$ORF, fixed=T)
+sum(g.8561.rv.idx) #4,686 features represented
+g.8561.bc.norm.rv <- g.8561.bc.norm[g.8561.rv.idx,]
+length(unique(as.character(g.8561.bc.norm.rv$genes$ORF))) #3924 genes
+
+#Redo the MA plots and see if artifacts disappear
+dir.create("./data/exprs/GSE8839/GPL8561/QA/postnormMA_RVfiltered")
+plotMA3by2(g.8561.bc.norm.rv, 
+           path="./data/exprs/GSE8839/GPL8561/QA/postnormMA_RVfiltered", 
+           main=paste(g.8561.targets$FileName, g.8561.targets$Cy5, paste=" - "))
+
+#QA plots to see if normalization worked
+png("uncorrected_densities.png")
+plotDensities(g.8561.rg)
+dev.off()
+
+png("./data/exprs/GSE8839/GPL8561/QA/corrected_densities.png")
+plotDensities(g.8561.bc.norm.rv)
+dev.off()
+
+##Extract log-2 expression
+
+#override remove_bad_spots function because gene name is
+#in different named column for GSE16146
+remove_bad_spots <- function(ma_list){
+  probe.weights <- ma_list$weights
+  probe.weights[probe.weights == 0] <- NA
+  cleaned <- probe.weights * ma_list$M
+  rownames(cleaned) <- as.character(ma_list$genes$ORF)
+  return(as.data.frame(cleaned))
+  
+}
+
+g.8561.rv.M <- remove_bad_spots(g.8561.bc.norm.rv)
+g.8561.rv.M$gene <- rownames(g.8561.rv.M)
+g.8561.rv.M.avg <- avg_probes(g.8561.rv.M, unique(g.8561.bc.norm.rv$genes$ORF))
+
+dim(g.8561.rv.M.avg)
+#[1] 3924  114
+dim(g.8561.rv.M)
+#[1] 4686  115
+
+#Check, right number of arrays and rows.
+
+save(g.8561.rv.M, file="./data/exprs/GSE8839/g.8561.rv.M.RData")
+save(g.8561.rv.M.avg, file="./data/exprs/GSE8839/g.8561.rv.M.avg.RData")
+
 
