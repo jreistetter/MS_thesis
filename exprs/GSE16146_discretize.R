@@ -12,9 +12,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
 #My laptop Dropbox
-setwd("~/schoolDB/Dropbox/thesis_work")
+#setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
 setwd("./data/exprs/GSE16146")
@@ -258,6 +258,8 @@ dev.off()
 ##Extract log-2 expression ratios and discretize
 
 gpl.8561.rv.M <- remove_bad_spots(gpl.8561.bc.norm.rv)
+save(gpl.8561.rv.M, file="../../gpl.8561.rv.M.RData")
+
 gpl.8561.rv.M.avg <- avg_probes(gpl.8561.rv.M, gpl.8561.bc.norm.rv$genes$ORF)
 gpl.8561.disc <- discretize(gpl.8561.rv.M.avg)
 
