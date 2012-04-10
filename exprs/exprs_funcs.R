@@ -140,6 +140,7 @@ df.consensus <- function(df, gene_ids, threshold){
   }
   consensus.clean <- consensus[,1:(ncol(consensus)-1)]
   rownames(consensus.clean) <- consensus$gene
+  colnames(consensus.clean) <- colnames(df)[1:(ncol(df)-1)]
   return(consensus.clean)
 }
 
