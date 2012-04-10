@@ -122,3 +122,38 @@ stopifnot(is.na(get_consensus(c(-1.1, 0.2, 1.3, 1.8), 1)))
 stopifnot(is.na(get_consensus(c(-0.9, 0.2, 1.3, 1.8), 1)))
 stopifnot(get_consensus(c(-1.6, -1.9, -1.8, NA), 1.5) == -1)
 stopifnot(is.na(get_consensus(c(-1.6, -1.9, NA, NA), 1.5)))
+
+
+df.consensus <- function(df, gene_ids, threshold){
+  consensus <- as.data.frame(
+    matrix(nrow=length(gene_ids), ncol=ncol(df)-1) 
+    )
+  consensus$gene <- ""
+  
+  for (i in 1:length(gene_ids)){
+    gene.arr <- df[df$gene == gene_ids[i],]
+    discretized <- unlist(
+      lapply(gene.arr[,1:ncol(gene.arr)-1], get_consensus, threshold=threshold)
+      )
+    consensus[i,1:(ncol(consensus)-1)] <- discretized
+    consensus[i,]$gene <- gene_ids[i]
+  }
+  return(consensus)
+}
+
+test <- as.data.frame(matrix(c(0.1, 0.2, -0.1, 0.3, 1.6, 1, 1.8, 1.1,
+                               1.6, 1, 1.8, 1.1, NA, NA, -0.1, 0.3,
+                               -1.8, -1.7, -1.9, -1.1, 1.6, 0.9, 1.8, 0.8), 
+                             ncol=3))
+test$gene <- ""
+test[1:4,]$gene <- "Rv0001"
+test[5:8,]$gene <- "Rv0002"
+
+test.out <- df.consensus(test, c("Rv0001", "Rv0002"), 1)
+
+stopifnot(test.out[1,1:3]==c(0,1,-1))
+stopifnot(test.out[2,1]==1)
+stopifnot(is.na(test.out[2,2]))
+stopifnot(is.na(test.out[2,3]))
+
+
