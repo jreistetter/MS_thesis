@@ -2,18 +2,29 @@
 # then write the data to a file readable by the PMN software.
 # 
 # 1 - Load expression data from RData objects
-# 2 - Merge the data frames from each experiment
-# 3 - Exclude arrays identified in QC as erroneous
-# 4 - Discretize data at a fold thresholds {1, 1.5, 2}
-#     -Filter out arrays with less than 10 DE genes
-# 5 - Write the combined dataframe to a PMN file
+# 2 - Discretize platforms without multiple probes
+# 3 - Get consensus discretization for platforms with multiple probes
+# 4 - Merge the data frames from each experiment
+# 5 - Exclude arrays identified in QC as erroneous
+# 6 - Filter out arrays with less than 10 DE genes
+# 7 - Filter out arrays with more than 10% genes == NA
+# 8 - Filter out genes that arent up or down in any arrays
+# 9 - Save as txt and RData
 
 # Notes:
-#   266 total arrays for express
-#   119 at 1-fold threshold
-#   105 at 1.5-fold threshold
-#   97 at 2-fold threshold
-#   *After filtering for arrays with < 10 DE genes
+#
+#  ----- 1.5 fold ----
+#   290 initial arrays for express
+#  - 24 excluded because of bad MA plots
+#  - 23 arrays will be excluded bc < 10 DE genes
+#  - 14 arrays excluded bc NA > 10%
+#  _____
+#   229 total arrays after QC
+
+#   3,842 genes in common between all platforms  
+#  -  384 genes that are all no change 
+#   _____
+#   3,458 genes left after QC
 
 #Fold threshold for discretization
 THRESHOLD = 1.5
@@ -263,8 +274,7 @@ excluded <- read.table("excluded_arrays.txt", head=F, stringsAsFactors=F)[,1]
 cols.excl <- which(colnames(expr) %in% excluded)
 
 length(cols.excl)
-#[1] 24 excluded
-
+#[1] 24 excluded because of bad MA plots
 
 #Check that right number of columns will be excluded
 stopifnot(length(excluded)==length(cols.excl))
@@ -282,10 +292,35 @@ ncol(expr)
 #Filter out arrays with less than 10 DE genes, 9 arrays will be removed
 lt.10 <- which(unlist(lapply(expr, function(x) sum(abs(x), na.rm=t))) < 10)
 length(lt.10)
-#[1] 23 arrays will be excluded
+#[1] 23 arrays will be excluded bc < 10 DE genes
+
 
 expr <- expr[,-lt.10]
 stopifnot(266 - ncol(expr) == 23)
+
+#Remove any genes that are coded no change for all arrays
+all_nochange <- apply(expr, 1, function(x) all(x == 0, na.rm=))
+sum(all_nochange)
+#[1] 384 genes that are all no change
+
+#Remove them from the expression dataframe
+expr <- expr[!all_nochange,]
+
+dim(expr)
+#[1] 3458  243
+
+#Remove any arrays with more than 10% NA values (345 genes)
+bad_array <- which(unlist(lapply(expr, function(x) sum(is.na(x)))) > 348)
+
+length(bad_array)
+#[1] 14 arrays excluded
+
+expr <- expr[,-bad_array]
+dim(expr)
+#[1] 3458  229
+
+#check that right number excluded
+stopifnot(243-ncol(expr) == 14)
 
 ##Write out file
 f <- file(OUT_FILENAME, "w")
@@ -295,6 +330,8 @@ write(header, f)
 
 write.table(expr, f, quote=F, row.names=T, col.names=F, sep="\t")
 close(f)
+
+
 
 
 #save for later use
