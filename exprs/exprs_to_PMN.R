@@ -32,8 +32,8 @@ source("./thesis_work/code/exprs/exprs_funcs.R")
 setwd("./thesis_work/data/exprs")
 
 load("GSE8786/g.8786.M.rv.RData")
-load("GSE9331/gpl.4291.M.avg.RData")
-load("GSE9331/gpl.4293.M.avg.RData")
+load("GSE9331/gpl.4291.rv.M.RData")
+load("GSE9331/gpl.4293.rv.M.RData")
 load("GSE16146/gpl.8523.M.RData")
 load("GSE16146/gpl.8561.M.RData")
 load("GSE16146/gpl.8562.M.RData")
@@ -42,7 +42,12 @@ load("GSE8839/g.8561.rv.M.RData")
 
 #For datasets with multiple probes, use consensus to roll up to gene
 
-#GSE8839
+
+########################################
+#
+#      GSE8839 GPL 8561 consensus
+#
+########################################
 
 #Get the total number of unique genes
 g.8839.genes <- unique(rownames(g.8561.rv.M))
@@ -93,7 +98,47 @@ stopifnot(length(intersect(rownames(g.8839.disc), g.8839.genes)) == length(g.883
 stopifnot(
   sum(colnames(g.8561.rv.M)[1:(ncol(g.8561.rv.M)-1)] != colnames(g.8839.disc)) == 0)
 
+########################################
+#
+#      GSE9331 GPL 4291 consensus
+#
+########################################
 
+#Get unique gene IDs
+gpl.4291.genes <- unique(rownames(gpl.4291.rv.M))
+length(gpl.4291.genes)
+#[1] 3897
+
+#Get the gene IDs of genes with multiple probes
+gpl.4291.dupes <- unique(rownames(gpl.4291.rv.M)[which(duplicated(rownames(gpl.4291.rv.M)))])
+length(gpl.4291.dupes)
+#[1] 3897, so all genes have multiple probes
+
+gpl.4291.disc <- df.consensus(gpl.4291.rv.M, gpl.4291.genes, THRESHOLD)
+
+#Check that all genes are represented
+stopifnot(length(intersect(gpl.4291.genes, rownames(gpl.4291.disc)))==length(gpl.4291.genes))
+
+########################################
+#
+#      GSE9331 GPL 4293 consensus
+#
+########################################
+
+#Get unique gene IDs
+gpl.4293.genes <- unique(rownames(gpl.4293.rv.M))
+length(gpl.4293.genes)
+#[1] 3900
+
+#Get the gene IDs of genes with multiple probes
+gpl.4293.dupes <- unique(rownames(gpl.4293.rv.M)[which(duplicated(rownames(gpl.4293.rv.M)))])
+length(gpl.4293.dupes)
+#[1] 3900, so all genes have multiple probes
+
+gpl.4293.disc <- df.consensus(gpl.4293.rv.M, gpl.4293.genes, THRESHOLD)
+
+#Check that all genes are represented
+stopifnot(length(intersect(gpl.4293.genes, rownames(gpl.4293.disc)))==length(gpl.4293.genes))
 
 # 2 - Merge the data frames from each experiment
 
