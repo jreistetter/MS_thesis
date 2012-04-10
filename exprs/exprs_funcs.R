@@ -138,7 +138,9 @@ df.consensus <- function(df, gene_ids, threshold){
     consensus[i,1:(ncol(consensus)-1)] <- discretized
     consensus[i,]$gene <- gene_ids[i]
   }
-  return(consensus)
+  consensus.clean <- consensus[,1:(ncol(consensus)-1)]
+  rownames(consensus.clean) <- consensus$gene
+  return(consensus.clean)
 }
 
 test <- as.data.frame(matrix(c(0.1, 0.2, -0.1, 0.3, 1.6, 1, 1.8, 1.1,
