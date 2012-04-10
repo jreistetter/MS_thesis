@@ -95,15 +95,20 @@ get_consensus <- function(vals, threshold){
   #Params:
   #vals - vector of log2(R/G) values
   #threshold - threshold for calling up/down/nocall for expression
+  
+  if (length(vals)-sum(!is.na(vals)) > 1){
+    return(NA)
+  }
   n_vals <- sum(!is.na(vals))
-  if (sum(vals >= threshold) >= n_vals-1){
+  
+  if (sum(vals >= threshold, na.rm=T) >= n_vals-1){
     return(1)
   }
   
-  if(sum(vals <= -1*threshold) >= n_vals-1){
+  if(sum(vals <= -1*threshold, na.rm=T) >= n_vals-1){
     return(-1)
   }
-  if(sum(vals >= -1*threshold & vals <= threshold) >= n_vals-1){
+  if(sum(vals >= -1*threshold & vals <= threshold, na.rm=T) >= n_vals-1){
     return(0)
   }
   return(NA)
@@ -112,11 +117,8 @@ get_consensus <- function(vals, threshold){
 #Test the function
 stopifnot(get_consensus(c(0.1, 0.2, 0, -0.1), 1) == 0)
 stopifnot(get_consensus(c(1.1, 1.2, 0.9, 1.3), 1) == 1)
-stopifnot(get_consensus(c(-1.1, -1.2, -1.8, -0.1), 1) == -1)
+stopifnot(get_consensus(c(-1.6, -1.9, -1.8, -0.1), 1.5) == -1)
 stopifnot(is.na(get_consensus(c(-1.1, 0.2, 1.3, 1.8), 1)))
 stopifnot(is.na(get_consensus(c(-0.9, 0.2, 1.3, 1.8), 1)))
-
-
-
-
-
+stopifnot(get_consensus(c(-1.6, -1.9, -1.8, NA), 1.5) == -1)
+stopifnot(is.na(get_consensus(c(-1.6, -1.9, NA, NA), 1.5)))
