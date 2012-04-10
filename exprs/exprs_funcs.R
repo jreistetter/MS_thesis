@@ -87,4 +87,36 @@ remove_bad_spots <- function(ma_list, type="M"){
 
 }
 
+get_consensus <- function(vals, threshold){
+  #Takes a vector of log2(R/G) values and finds the
+  #consensus, defined as nvals - 1 having the same
+  #call.
+  #
+  #Params:
+  #vals - vector of log2(R/G) values
+  #threshold - threshold for calling up/down/nocall for expression
+  n_vals <- sum(!is.na(vals))
+  if (sum(vals >= threshold) >= n_vals-1){
+    return(1)
+  }
+  
+  if(sum(vals <= -1*threshold) >= n_vals-1){
+    return(-1)
+  }
+  if(sum(vals >= -1*threshold & vals <= threshold) >= n_vals-1){
+    return(0)
+  }
+  return(NA)
+}
+
+#Test the function
+stopifnot(get_consensus(c(0.1, 0.2, 0, -0.1), 1) == 0)
+stopifnot(get_consensus(c(1.1, 1.2, 0.9, 1.3), 1) == 1)
+stopifnot(get_consensus(c(-1.1, -1.2, -1.8, -0.1), 1) == -1)
+stopifnot(is.na(get_consensus(c(-1.1, 0.2, 1.3, 1.8), 1)))
+stopifnot(is.na(get_consensus(c(-0.9, 0.2, 1.3, 1.8), 1)))
+
+
+
+
 
