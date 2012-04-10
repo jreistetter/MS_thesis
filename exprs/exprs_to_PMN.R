@@ -15,7 +15,8 @@
 #   97 at 2-fold threshold
 #   *After filtering for arrays with < 10 DE genes
 
-
+#Fold threshold for discretization
+THRESHOLD = 1.5
 
 # 1 - Load expression data from RData objects
 #
@@ -26,16 +27,72 @@ setwd("~/Dropbox")
 #Laptop wd
 #setwd("~/schoolDB/Dropbox")
 
+source("./thesis_work/code/exprs/exprs_funcs.R")
+
 setwd("./thesis_work/data/exprs")
 
 load("GSE8786/g.8786.M.rv.RData")
 load("GSE9331/gpl.4291.M.avg.RData")
 load("GSE9331/gpl.4293.M.avg.RData")
 load("GSE16146/gpl.8523.M.RData")
-#Dont use 8561 until duplication issue is resolved
-#load("GSE16146/gpl.8561.M.RData")
+load("GSE16146/gpl.8561.M.RData")
 load("GSE16146/gpl.8562.M.RData")
-load("GSE8839/g.8561.rv.M.avg.RData")
+load("GSE8839/g.8561.rv.M.RData")
+
+
+#For datasets with multiple probes, use consensus to roll up to gene
+
+#GSE8839
+
+#Get the total number of unique genes
+g.8839.genes <- unique(rownames(g.8561.rv.M))
+length(g.8839.genes)
+#[1] 3924
+
+#Get the gene IDs of genes with multiple probes
+g.8839.dupes <- unique(rownames(g.8561.rv.M)[which(duplicated(rownames(g.8561.rv.M)))])
+
+length(g.8839.dupes)
+#[1] 655 genes with multiple probes
+
+#Subset data frame into duplicated and not duplicated
+no_dup.8839.idx <- which(!(rownames(g.8561.rv.M) %in% g.8839.dupes))
+dup.8839.idx <- which((rownames(g.8561.rv.M) %in% g.8839.dupes))
+
+dup.8839.df <- g.8561.rv.M[dup.8839.idx,]
+dim(dup.8839.df)
+#[1] 1417  115
+
+#Check that the number of rows of unduplicated genes + rows of duplicated
+#genes equals the orignal df size
+stopifnot(length(no_dup.8839.idx) + nrow(dup.8839.df) == nrow(g.8561.rv.M))
+
+#Check when we take out duplicated genes we have the number of non-duplicated genes
+stopifnot(3924 - 655 == length(no_dup.8839.idx))
+
+cons.8839.df <- df.consensus(dup.8839.df, unique(dup.8839.df$gene), THRESHOLD)
+
+#Check that it collapsed the genes correctly:
+stopifnot(nrow(cons.8839.df) == length(g.8839.dupes))
+
+#discretize the non-duplicated genes
+nodup.8839.df <- g.8561.rv.M[no_dup.8839.idx,]
+nodup.8839.disc <- discretize(nodup.8839.df, THRESHOLD)
+stopifnot(nrow(nodup.8839.disc) == length(no_dup.8839.idx))
+
+#combine the two
+g.8839.disc <- rbind(cons.8839.df, nodup.8839.disc[,1:(ncol(nodup.8839.disc))-1])
+
+#Check that the right number of genes are there
+stopifnot(nrow(g.8839.disc)==length(g.8839.genes))
+
+#Check that all the genes are there:
+stopifnot(length(intersect(rownames(g.8839.disc), g.8839.genes)) == length(g.8839.genes))
+
+#Check that all the arrays are the same
+stopifnot(
+  sum(colnames(g.8561.rv.M)[1:(ncol(g.8561.rv.M)-1)] != colnames(g.8839.disc)) == 0)
+
 
 
 # 2 - Merge the data frames from each experiment
