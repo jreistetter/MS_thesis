@@ -11,9 +11,9 @@ library(GEOquery)
 library(limma)
 
 #At OHSU Dropbox
-setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
-##My laptop Dropbox
-#setwd("~/schoolDB/Dropbox/thesis_work")
+#setwd("/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work/")
+#My laptop Dropbox
+setwd("~/schoolDB/Dropbox/thesis_work")
 source("./code/exprs/exprs_funcs.R")
 
 #setwd("./data/exprs/GSE8839")
@@ -145,15 +145,7 @@ remove_bad_spots <- function(ma_list){
 }
 
 g.8561.rv.M <- remove_bad_spots(g.8561.bc.norm.rv)
-g.8561.rv.M$gene <- rownames(g.8561.rv.M)
-g.8561.rv.M.avg <- avg_probes(g.8561.rv.M, unique(g.8561.bc.norm.rv$genes$ORF))
-
-dim(g.8561.rv.M.avg)
-#[1] 3924  114
-dim(g.8561.rv.M)
-#[1] 4686  115
-
-#Check, right number of arrays and rows.
+g.8561.rv.M.avg <- avg_probes(g.8561.rv.M, as.character(g.8561.bc.norm.rv$genes$ORF))
 
 save(g.8561.rv.M, file="./data/exprs/GSE8839/g.8561.rv.M.RData")
 save(g.8561.rv.M.avg, file="./data/exprs/GSE8839/g.8561.rv.M.avg.RData")
