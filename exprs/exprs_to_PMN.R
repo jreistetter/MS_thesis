@@ -262,12 +262,6 @@ stopifnot(
   )
 
 
-#get rid of all objects except expr
-objs <- ls()
-objs[which(objs == "expr")] <- "objs"
-
-rm(list=objs)
-
 # 3 - Exclude arrays identified in QC as erroneous
 
 excluded <- read.table("excluded_arrays.txt", head=F, stringsAsFactors=F)[,1]
