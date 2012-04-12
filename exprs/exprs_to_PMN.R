@@ -35,10 +35,10 @@ OUT_RFILE = "expr.cons.1.5.RData"
 #
 
 #OHSU wd
-setwd("~/Dropbox")
+#setwd("~/Dropbox")
 
 #Laptop wd
-#setwd("~/schoolDB/Dropbox")
+setwd("~/schoolDB/Dropbox")
 
 source("./thesis_work/code/exprs/exprs_funcs.R")
 
@@ -299,7 +299,7 @@ expr <- expr[,-lt.10]
 stopifnot(266 - ncol(expr) == 23)
 
 #Remove any genes that are coded no change for all arrays
-all_nochange <- apply(expr, 1, function(x) all(x == 0, na.rm=))
+all_nochange <- apply(expr, 1, function(x) all(x == 0, na.rm=T))
 sum(all_nochange)
 #[1] 384 genes that are all no change
 
@@ -335,4 +335,4 @@ close(f)
 
 
 #save for later use
-save(expr, file="ROUT_FILE")
+save(expr, file=ROUT_FILE)
