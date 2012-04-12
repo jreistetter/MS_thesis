@@ -65,3 +65,18 @@ length(c(g.42221.rv, g.44425.rv, g.51716.rv,
          g.5576.rv, g.6950.rv, g.6955.rv,
          g.9607.rv))
 #[1] 951
+save(go.rv, file="go.rv.RData")
+write.table(go.rv, file="go_regulators.txt", quote=F,
+row.names=F, col.names=F)
+
+#Combine with other regulator group
+
+reg_list <- read.table("initial.regulators", head=F, stringsAsFactors=F)
+
+go.rv <- toupper(go.rv)
+
+final_reg_list <- unique(c(go.rv, toupper(reg_list[,1])))
+
+length(final_reg_list)
+#[1] 650
+
