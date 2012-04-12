@@ -80,3 +80,6 @@ final_reg_list <- unique(c(go.rv, toupper(reg_list[,1])))
 length(final_reg_list)
 #[1] 650
 
+write.table(final_reg_list, file="final.regulators",
+              quote=F, row.names=F, col.names=F)
+
