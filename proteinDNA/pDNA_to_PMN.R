@@ -5,7 +5,11 @@
 #
 # 
 #   Results:
-#     434 regulator/target pairs in total, 150 of which were duplicated
+#     534 pairs from the literature
+#     403 pairs from MycoRegNet
+#     181 pairs from MtbRegList
+#
+#     1,118 regulator/target pairs in total, 173 of which were duplicated
 #     728 protein-DNA edges written out to H37Rv.pdna.list
 # 
 # Workflow:
@@ -35,15 +39,32 @@ root_path <-"/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work"
 setwd(paste(root_path, "/data/protein-DNA/RData", sep=""))
 source(paste(root_path, "/code/proteinDNA/pdna_funcs.R", sep=""))
 
-#Import regulator/target pairs
+#Import regulator/target pairs from databases
 load("mtbreglist.pairs.RData")
+nrow(mtbreglist.pairs)
+#[1] 181 pairs from MtbRegList
+
 load("myco.pairs.TFBS.RData")
 load("myco.pairs.ortho.RData")
+nrow(myco.pairs.TFBS) + nrow(myco.pairs.ortho)
+#[1] 403 from MycoRegNet
+
+#Import regulator/target pairs from literature
+setwd("../literature/")
+lit.reg_targ <- read.table("pDNA_literature.txt", head=T,
+                           sep='\t', stringsAsFactors=F)
+
+dim(lit.reg_targ)
+#[1] 534   3
+#534 pairs
+#3rd column is the literature source, don't neeed that.
 
 reg_target.raw <- rbind(mtbreglist.pairs, myco.pairs.TFBS)
 reg_target.raw <- rbind(reg_target.raw, myco.pairs.ortho)
+reg_target.raw <- rbind(reg_target.raw, lit.reg_targ[,c(1,2)])
 
-nrow(reg_target.raw) #584 pairs
+nrow(reg_target.raw)
+#[1] 1118 pairs
 
 reg_target.raw <- as.data.frame(lapply(reg_target.raw, toupper),
                                 stringsAsFactors=F)
@@ -53,7 +74,7 @@ reg_target.raw$pair <- paste(reg_target.raw$regulator,
                          reg_target.raw$target, sep="")
 
 sum(duplicated(reg_target.raw$pair))
-#150
+#[1] 173
 
 reg_target <- reg_target.raw[!duplicated(reg_target.raw$pair),]
 
