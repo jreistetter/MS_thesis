@@ -44,3 +44,8 @@ nohup perl LearnPMN_web.pl -k 4 -s 100 -d y -C y -e ../data/4.12.2012/mtb_exprs_
 cd /home/reistett/PMN/PMN_software;
 mkdir ../output/4.13.12_30_mods;
 nohup perl LearnPMN_web.pl -k 4 -s 30 -d y -C y -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.13.12_30_mods/4.13.12_30_mods -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.13.12._30_mods.log &
+
+-same data, 50 modules, no k-means clustering
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/4.13.12_50_mods_no_k;
+nohup perl LearnPMN_web.pl -k 4 -s 30 -d y -C n -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.13.12_50_mods_no_k/4.13.12_50_mods_no_k -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.13.12_50_mods_no_k.log &
