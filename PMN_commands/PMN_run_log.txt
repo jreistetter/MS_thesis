@@ -21,3 +21,12 @@ nohup perl LearnPMN_web.pl -k 4 -s 10 -d y -C y -e ../data/initial_dat/mtb_exprs
 cd /home/reistett/PMN/PMN_software;
 mkdir ../output/4.6.12_init_dat;
 nohup perl LearnPMN_web.pl -k 4 -s 500 -d y -C y -e ../data/initial_dat/mtb_exprs_1.5fold.txt -r ../data/initial_dat/initial.regulators -j ../output/4.6.12_init_dat/4.6.12_init_dat -u n -i ../data/initial_dat/mtb.pp.list -I ../data/initial_dat/H37Rv.pdna.list -p 1 -c ../data/initial_dat/toy.conf -t ../data/initial_dat/H37Rv.tfs &> 4.6.12.log &
+
+4/12/2012
+-Added more reg/targs from literature
+-Added regulators from GO
+-500 modules
+
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/4.12.12_500_mods;
+nohup perl LearnPMN_web.pl -k 4 -s 500 -d y -C y -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.12.12_500_mods/4.12.12_500_mods -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.12.12._500_mods.log &;
