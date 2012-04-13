@@ -8,9 +8,15 @@
 #     534 pairs from the literature
 #     403 pairs from MycoRegNet
 #     181 pairs from MtbRegList
-#
+#     _________
 #     1,118 regulator/target pairs in total, 173 of which were duplicated
-#     728 protein-DNA edges written out to H37Rv.pdna.list
+#     945 *unique* regulator/target pairs, final
+#     
+#
+#     4560 total edges
+#     3269 duplicated edges
+#     1276 protein- DNAedges remain after removing duplicates and 15 auto-regulation edges
+#     
 # 
 # Workflow:
 #   Do this for each operon data set.
@@ -77,15 +83,17 @@ sum(duplicated(reg_target.raw$pair))
 #[1] 173
 
 reg_target <- reg_target.raw[!duplicated(reg_target.raw$pair),]
+nrow(reg_target)
+#[1] 945 unique pairs
 
-nrow(reg_target.raw) - nrow(reg_target) == 150 #True, got all dupes
+nrow(reg_target.raw) - nrow(reg_target) == 173 #True, got all dupes
 
 ###############################
 #
 #      DOOR
 #
 ###############################
-
+setwd("../RData/")
 
 
 load("door.op.list.RData")
@@ -136,18 +144,37 @@ ODB.edges <- assign_pDNA_edge(reg_target, ODB_genes, ODB.op.list)
 pDNA.edges.raw <- rbind(door.edges, microbes_online.edges)
 pDNA.edges.raw <- rbind(pDNA.edges.raw, ODB.edges)
 
-sum(duplicated(pDNA.edges.raw[,2]))
-#[1] 1313, most likely reg/targs without an operon
+pDNA.edges.df <- as.data.frame(pDNA.edges.raw, stringsAsFactors=F)
+
+pDNA.edges.df$pair <- paste(pDNA.edges.df$protein,
+                             pDNA.edges.df$gene, sep="")
+
+pDNA.edges.df <- as.data.frame(lapply(pDNA.edges.df, toupper),
+                               stringsAsFactors=F)
+
+nrow(pDNA.edges.df)
+#[1] 4560 edges
+
+sum(duplicated(pDNA.edges.df$pair))
+#[1] 3269
 
 
 #Remove dupes
-pDNA.edges <- pDNA.edges.raw[!duplicated(pDNA.edges.raw[,2]),]
+pDNA.edges <- pDNA.edges.df[!duplicated(pDNA.edges.df[,3]),]
+nrow(pDNA.edges)
+#[1] 1291
 
-nrow(pDNA.edges.raw) - nrow(pDNA.edges) == 1313
+#Check that dupes removed:
+nrow(pDNA.edges.raw) - nrow(pDNA.edges) == 3269
+#[1] TRUE
 
-pDNA.edges <- as.data.frame(pDNA.edges, stringsAsFactors=F)
+#Remove any auto-regulation pairs
+pDNA.edges <- pDNA.edges[-which(pDNA.edges[,1]==pDNA.edges[,2]),]
+nrow(pDNA.edges)
+#[1] 1276, so 15 were autoregulation
+
+
 #Calculate confidence score based on PMN paper
-
 
 #initialize list to hold degrees
 node_degrees <- vector("list", length(unique(pDNA.edges[,1])))
