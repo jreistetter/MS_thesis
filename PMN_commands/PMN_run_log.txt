@@ -29,4 +29,11 @@ nohup perl LearnPMN_web.pl -k 4 -s 500 -d y -C y -e ../data/initial_dat/mtb_expr
 
 cd /home/reistett/PMN/PMN_software;
 mkdir ../output/4.12.12_500_mods;
-nohup perl LearnPMN_web.pl -k 4 -s 500 -d y -C y -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.12.12_500_mods/4.12.12_500_mods -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.12.12._500_mods.log &;
+nohup perl LearnPMN_web.pl -k 4 -s 500 -d y -C y -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.12.12_500_mods/4.12.12_500_mods -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.12.12._500_mods.log &
+
+4/12/2012
+-Same data just less modules
+
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/4.12.12_100_mods;
+nohup perl LearnPMN_web.pl -k 4 -s 100 -d y -C y -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.12.12_100_mods/4.12.12_100_mods -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.12.12._100_mods.log &
