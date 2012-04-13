@@ -5,6 +5,9 @@
 #
 # 
 #   Results:
+#
+#     p-DNA edges between 869 genes
+#
 #     534 pairs from the literature
 #     403 pairs from MycoRegNet
 #     181 pairs from MtbRegList
@@ -173,16 +176,23 @@ pDNA.edges <- pDNA.edges[-which(pDNA.edges[,1]==pDNA.edges[,2]),]
 nrow(pDNA.edges)
 #[1] 1276, so 15 were autoregulation
 
+#remove pairs column
+pDNA.edges <- pDNA.edges[,-3]
+
 
 #Calculate confidence score based on PMN paper
 
+edge.genes <- unique(c(pDNA.edges[,1], pDNA.edges[,2]))
+length(edge.genes)
+#[1] 869 genes
+
 #initialize list to hold degrees
-node_degrees <- vector("list", length(unique(pDNA.edges[,1])))
-names(node_degrees) <- unique(pDNA.edges[,1])
+node_degrees <- vector("list", length(edge.genes))
+names(node_degrees) <- edge.genes
 node_degrees <- lapply(node_degrees, function(x) x <- 0)
 
 #Add 1 to the degree of each protein in an edge for STRING
-for (node in pDNA.edges[,1]){
+for (node in c(pDNA.edges[,1], pDNA.edges[,2])){
   node_degrees[[node]] <- as.integer(node_degrees[[node]]) + 1
 }
 
@@ -212,8 +222,6 @@ pDNA.edges <- add_degrees(pDNA.edges, node_degrees)
 
 #Assign forward direction to edge, see PMN docs
 pDNA.edges$direction <- 1
-pDNA.edges$protein <- toupper(pDNA.edges$protein)
-pDNA.edges$gene <- toupper(pDNA.edges$gene)
 
 save(pDNA.edges, file="pDNA.edges.RData")
 
