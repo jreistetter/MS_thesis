@@ -94,6 +94,8 @@ stopifnot(length(no_dup.8839.idx) + nrow(dup.8839.df) == nrow(g.8561.rv.M))
 stopifnot(3924 - 655 == length(no_dup.8839.idx))
 
 cons.8839.df <- df.consensus(dup.8839.df, unique(dup.8839.df$gene), THRESHOLD)
+cons.8839.check <- df.check_consensus(dup.8839.df, unique(dup.8839.df$gene), THRESHOLD)
+save(cons.8839.check, file="./consensus_check/cons.8839.check.RData")
 
 #Check that it collapsed the genes correctly:
 stopifnot(nrow(cons.8839.df) == length(g.8839.dupes))
@@ -133,6 +135,8 @@ length(gpl.4291.dupes)
 #[1] 3897, so all genes have multiple probes
 
 gpl.4291.disc <- df.consensus(gpl.4291.rv.M, gpl.4291.genes, THRESHOLD)
+gpl.4291.check <- df.check_consensus(gpl.4291.rv.M, gpl.4291.genes, THRESHOLD)
+save(gpl.4291.check, file="./consensus_check/gpl.4291.check.RData")
 
 #Check that all genes are represented
 stopifnot(length(intersect(gpl.4291.genes, rownames(gpl.4291.disc)))==length(gpl.4291.genes))
@@ -154,6 +158,8 @@ length(gpl.4293.dupes)
 #[1] 3900, so all genes have multiple probes
 
 gpl.4293.disc <- df.consensus(gpl.4293.rv.M, gpl.4293.genes, THRESHOLD)
+gpl.4293.check <- df.check_consensus(gpl.4293.rv.M, gpl.4293.genes, THRESHOLD)
+save(gpl.4293.check, file="./consensus_check/gpl.4293.check.RData")
 
 #Check that all genes are represented
 stopifnot(length(intersect(gpl.4293.genes, rownames(gpl.4293.disc)))==length(gpl.4293.genes))
@@ -194,6 +200,8 @@ stopifnot(length(no_dup.8561.idx) + nrow(dup.8561.df) == nrow(gpl.8561.rv.M))
 stopifnot(3924 - 655 == length(no_dup.8561.idx))
 
 cons.8561.df <- df.consensus(dup.8561.df, unique(dup.8561.df$gene), THRESHOLD)
+cons.8561.check <- df.check_consensus(dup.8561.df, unique(dup.8561.df$gene), THRESHOLD)
+save(cons.8561.check, file="./consensus_check/cons.8561.check.RData")
 
 #Check that it collapsed the genes correctly:
 stopifnot(nrow(cons.8561.df) == length(gpl.8561.dupes))
