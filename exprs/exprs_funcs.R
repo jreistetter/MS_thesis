@@ -159,4 +159,45 @@ stopifnot(test.out[2,1]==1)
 stopifnot(is.na(test.out[2,2]))
 stopifnot(is.na(test.out[2,3]))
 
+check_consensus <- function(vals, threshold){
+  #Function to record which expression values are the result of
+  #a consensus call.
+  #
+  # Params:
+  # vals - vector of log2(R/G) values for one gene from one array
+  # threshold - log2(R/G) value for discretization
+  #
+  # Returns:
+  # character - "consensus" if made with consensus call, "all" if all probes agree
+  
+  if (length(vals)-sum(!is.na(vals)) > 1){
+    return(NA)
+  }
+  n_vals <- sum(!is.na(vals))
+  if (all(vals >= threshold, na.rm=T) |
+      all(vals < threshold & vals > -1*threshold) |
+      all(vals <= -1*threshold)){
+    return ("all")
+  }
+  
+  if (sum(vals >= threshold, na.rm=T) >= n_vals-1){
+    return("consensus")
+  }
+  
+  if(sum(vals <= -1*threshold, na.rm=T) >= n_vals-1){
+    return("consensus")
+  }
+  if(sum(vals >= -1*threshold & vals <= threshold, na.rm=T) >= n_vals-1){
+    return("consensus")
+  }
+  return("no_consensus")
+}
+
+stopifnot(check_consensus(c(1.1, 1.1, 1.4, 1.2), 1)=="all")
+stopifnot(check_consensus(c(-1.1, -1.1, 1.4, 1.2), 1) == "no_consensus")
+stopifnot(check_consensus(c(1.1, 1.1, 1.4, 0.8), 1)=="consensus")
+stopifnot(check_consensus(c(-1.1, -1.1, -1.4, -1.2), 1)=="all")
+stopifnot(check_consensus(c(-1.1, -1.1, -1.4, -0.8), 1)=="consensus")
+stopifnot(check_consensus(c(0.3, 0.2, -0.4, -0.8), 1)=="all")
+stopifnot(check_consensus(c(0.3, 1.2, -0.4, -0.8), 1)=="consensus")
 
