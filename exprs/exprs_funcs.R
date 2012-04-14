@@ -175,8 +175,8 @@ check_consensus <- function(vals, threshold){
   }
   n_vals <- sum(!is.na(vals))
   if (all(vals >= threshold, na.rm=T) |
-      all(vals < threshold & vals > -1*threshold) |
-      all(vals <= -1*threshold)){
+      all(vals < threshold & vals > -1*threshold, na.rm=T) |
+      all(vals <= -1*threshold, na.rm=T)){
     return ("all")
   }
   
