@@ -49,3 +49,12 @@ nohup perl LearnPMN_web.pl -k 4 -s 30 -d y -C y -e ../data/4.12.2012/mtb_exprs_1
 cd /home/reistett/PMN/PMN_software;
 mkdir ../output/4.13.12_50_mods_no_k;
 nohup perl LearnPMN_web.pl -k 4 -s 30 -d y -C n -e ../data/4.12.2012/mtb_exprs_1.5fold.txt -r ../data/4.12.2012/final.regulators -j ../output/4.13.12_50_mods_no_k/4.13.12_50_mods_no_k -u n -i ../data/4.12.2012/mtb.pp.list -I ../data/4.12.2012/H37Rv.pdna.list -p 1 -c ../data/4.12.2012/4.12.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 4.13.12_50_mods_no_k.log &
+
+4/17/2012
+-Run PMN straight from the binary instead of using the perl script
+-10 Maximum number of reassign steps in each iteration 
+-50 Maximum number of search steps in each iteration
+
+cd /home/reistett/PMN/PMN_software;
+nohup ./LearnModuleNetIntMap -S 100 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/4.17.12_30_mods/4.13.12_30_mods.train.1.data -s ../output/4.17.12_30_mods/4.13.12_30_mods.30.net -o ../output/4.17.12_30_mods/4.17.12_30_mods.out.net _c ../data/4.12.2012/4.12.2012.conf _m ../output/4.17.12_30_mods/4.13.12_30_mods.gene-prot.map ../output/4.17.12_30_mods/4.13.12_30_mods.pp.inter ../output/4.17.12_30_mods/4.13.12_30_mods.pdna.inter _f ../output/4.17.12_30_mods/4.17.12_30_mods.inter.net &> 4.17.12.30_mods.log &
+
