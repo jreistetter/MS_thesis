@@ -56,10 +56,10 @@ g.5576.rv <- parse_GO("GO_0005576.txt")
 g.44425.rv <- parse_GO("GO_0044425.txt")
 
 #Write out the regulators for two smaller GO categories
-write.table(g.6950.rv, file="go_stress.regulators",
+write.table(toupper(g.6950.rv), file="go_stress.regulators",
             quote=F, row.names=F, col.names=F)
 
-write.table(g.6955.rv, file="go_immune.regulators",
+write.table(toupper(g.6955.rv), file="go_immune.regulators",
             quote=F, row.names=F, col.names=F)
 
 #Write out all the regulators in one big file
