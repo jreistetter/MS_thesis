@@ -13,7 +13,10 @@
 #   GO:0044425 : membrane part [104 gene products]
 
 #laptop
-setwd("~/schoolDB/Dropbox/thesis_work/data/regulators/")
+#setwd("~/schoolDB/Dropbox/thesis_work/data/regulators/")
+
+#OSHU
+setwd("~/Dropbox/thesis_work/data/regulators/")
 
 
 get_rv <- function(pipe_list){
@@ -51,6 +54,15 @@ g.51716.rv <- parse_GO("GO_0051716.txt")
 
 g.5576.rv <- parse_GO("GO_0005576.txt")
 g.44425.rv <- parse_GO("GO_0044425.txt")
+
+#Write out the regulators for two smaller GO categories
+write.table(g.6950.rv, file="go_stress.regulators",
+            quote=F, row.names=F, col.names=F)
+
+write.table(g.6955.rv, file="go_immune.regulators",
+            quote=F, row.names=F, col.names=F)
+
+#Write out all the regulators in one big file
 
 go.rv <- unique(c(g.42221.rv, g.44425.rv, g.51716.rv,
                   g.5576.rv, g.6950.rv, g.6955.rv,
