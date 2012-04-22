@@ -219,6 +219,10 @@ cons.8561.df <- df.consensus(dup.8561.df, unique(dup.8561.df$gene), THRESHOLD)
 cons.8561.check <- df.check_consensus(dup.8561.df, unique(dup.8561.df$gene), THRESHOLD)
 save(cons.8561.check, file="./consensus_check/cons.8561.check.RData")
 
+#Take the means of replicated probes
+cons.8561.means <- df.consensus(dup.8561.df, unique(dup.8561.df$gene), 
+                                THRESHOLD, take_mean=TRUE)
+
 #Check that it collapsed the genes correctly:
 stopifnot(nrow(cons.8561.df) == length(gpl.8561.dupes))
 
@@ -229,9 +233,11 @@ stopifnot(nrow(nodup.8561.disc) == length(no_dup.8561.idx))
 
 #combine the two
 gpl.8561.disc <- rbind(cons.8561.df, nodup.8561.disc[,1:(ncol(nodup.8561.disc))-1])
+gpl.8561.means <- rbind(cons.8561.means, nodup.8561.df[,1:(ncol(nodup.8561.df))-1])
 
 #Check that the right number of genes are there
 stopifnot(nrow(gpl.8561.disc)==length(gpl.8561.genes))
+stopifnot(nrow(gpl.8561.means)==length(gpl.8561.genes))
 
 #Check that all the genes are there:
 stopifnot(length(intersect(rownames(gpl.8561.disc), gpl.8561.genes)) == length(gpl.8561.genes))
