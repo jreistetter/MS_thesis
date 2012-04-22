@@ -97,8 +97,13 @@ cons.8839.df <- df.consensus(dup.8839.df, unique(dup.8839.df$gene), THRESHOLD)
 cons.8839.check <- df.check_consensus(dup.8839.df, unique(dup.8839.df$gene), THRESHOLD)
 save(cons.8839.check, file="./consensus_check/cons.8839.check.RData")
 
+#Now get just the means:
+cons.8839.means <- df.consensus(dup.8839.df, unique(dup.8839.df$gene), 
+                                THRESHOLD, take_mean=TRUE)
+
 #Check that it collapsed the genes correctly:
 stopifnot(nrow(cons.8839.df) == length(g.8839.dupes))
+stopifnot(nrow(cons.8839.means) == length(g.8839.dupes))
 
 #discretize the non-duplicated genes
 nodup.8839.df <- g.8561.rv.M[no_dup.8839.idx,]
@@ -108,8 +113,11 @@ stopifnot(nrow(nodup.8839.disc) == length(no_dup.8839.idx))
 #combine the two
 g.8839.disc <- rbind(cons.8839.df, nodup.8839.disc[,1:(ncol(nodup.8839.disc))-1])
 
+g.8839.means <- rbind(cons.8839.means, nodup.8839.df[,1:(ncol(nodup.8839.df))-1])
+
 #Check that the right number of genes are there
 stopifnot(nrow(g.8839.disc)==length(g.8839.genes))
+stopifnot(nrow(g.8839.means)==length(g.8839.genes))
 
 #Check that all the genes are there:
 stopifnot(length(intersect(rownames(g.8839.disc), g.8839.genes)) == length(g.8839.genes))
