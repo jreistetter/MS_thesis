@@ -146,6 +146,10 @@ gpl.4291.disc <- df.consensus(gpl.4291.rv.M, gpl.4291.genes, THRESHOLD)
 gpl.4291.check <- df.check_consensus(gpl.4291.rv.M, gpl.4291.genes, THRESHOLD)
 save(gpl.4291.check, file="./consensus_check/gpl.4291.check.RData")
 
+#Get means instead of discretized
+gpl.4291.means <- df.consensus(gpl.4291.rv.M, gpl.4291.genes, 
+                               THRESHOLD, take_mean=TRUE)
+
 #Check that all genes are represented
 stopifnot(length(intersect(gpl.4291.genes, rownames(gpl.4291.disc)))==length(gpl.4291.genes))
 
