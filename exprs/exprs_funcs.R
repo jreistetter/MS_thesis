@@ -87,7 +87,7 @@ remove_bad_spots <- function(ma_list, type="M"){
 
 }
 
-get_consensus <- function(vals, threshold){
+get_consensus <- function(vals, threshold, take_mean=FALSE){
   #Takes a vector of log2(R/G) values and finds the
   #consensus, defined as nvals - 1 having the same
   #call.
@@ -102,13 +102,22 @@ get_consensus <- function(vals, threshold){
   n_vals <- sum(!is.na(vals))
   
   if (sum(vals >= threshold, na.rm=T) >= n_vals-1){
+    if (take_mean==TRUE){
+      return(mean(vals[vals >= threshold]))
+    }
     return(1)
   }
   
   if(sum(vals <= -1*threshold, na.rm=T) >= n_vals-1){
+    if(take_mean==TRUE){
+      return(mean(vals[vals <= -1*threshold]))
+    }
     return(-1)
   }
   if(sum(vals >= -1*threshold & vals <= threshold, na.rm=T) >= n_vals-1){
+    if(take_mean==TRUE){
+      return(mean(vals[vals >= -1*threshold & vals <= threshold]))
+    }
     return(0)
   }
   return(NA)
@@ -122,7 +131,11 @@ stopifnot(is.na(get_consensus(c(-1.1, 0.2, 1.3, 1.8), 1)))
 stopifnot(is.na(get_consensus(c(-0.9, 0.2, 1.3, 1.8), 1)))
 stopifnot(get_consensus(c(-1.6, -1.9, -1.8, NA), 1.5) == -1)
 stopifnot(is.na(get_consensus(c(-1.6, -1.9, NA, NA), 1.5)))
-
+stopifnot(get_consensus(c(0.1, 1.2, 1.4, 1.2), 1, take_mean=TRUE)==mean(c(1.2,1.4,1.2)))
+stopifnot(get_consensus(c(0.1, -1.2, -1.4, -1.2), 1, take_mean=TRUE)==mean(c(-1.2,-1.4,-1.2)))
+stopifnot(is.na(get_consensus(c(0.1, -1.2, 1.4, 1.2), 1, take_mean=TRUE)))
+stopifnot(get_consensus(c(0.1, 0.2, -0.1, 0.4), 1, take_mean=TRUE)==mean(c(0.1, 0.2, -0.1, 0.4)))
+stopifnot(get_consensus(c(0.1, 0.2, -0.1, 1.4), 1, take_mean=TRUE)==mean(c(0.1, 0.2, -0.1)))
 
 df.consensus <- function(df, gene_ids, threshold){
   consensus <- as.data.frame(
