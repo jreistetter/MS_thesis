@@ -249,6 +249,7 @@ stopifnot(
 
 # 2 - Merge the data frames from each experiment
 
+#Discretized data
 rownames(g.8786.disc) <- toupper(rownames(g.8786.disc))
 rownames(gpl.4291.disc) <- toupper(rownames(gpl.4291.disc))
 rownames(gpl.4293.disc) <- toupper(rownames(gpl.4293.disc))
@@ -291,19 +292,65 @@ stopifnot(
     ncol(g.8839.disc)
   )
 
+#Mean data
+
+rownames(g.8786.M.rv) <- toupper(rownames(g.8786.M.rv))
+rownames(gpl.4291.means) <- toupper(rownames(gpl.4291.means))
+rownames(gpl.4293.means) <- toupper(rownames(gpl.4293.means))
+rownames(gpl.8523.rv.M) <- toupper(rownames(gpl.8523.rv.M))
+rownames(gpl.8562.rv.M) <- toupper(rownames(gpl.8562.rv.M))
+rownames(gpl.8561.means) <- toupper(rownames(gpl.8561.means))
+rownames(g.8839.means) <- toupper(rownames(g.8839.means))
+
+expr.mean <- merge(g.8786.M.rv, gpl.4291.means,
+                   by.x="row.names", by.y="row.names")
+
+expr.mean <- merge(expr.mean, gpl.4293.means,
+                   by.x="Row.names", by.y="row.names")
+
+expr.mean <- merge(expr.mean, gpl.8523.rv.M,
+by.x="Row.names", by.y="row.names")
+
+expr.mean <- merge(expr.mean, gpl.8562.rv.M,
+                   by.x="Row.names", by.y="row.names")
+
+expr.mean <- merge(expr.mean, gpl.8561.means,
+                   by.x="Row.names", by.y="row.names")
+
+expr.mean <- merge(expr.mean, g.8839.means,
+                   by.x="Row.names", by.y="row.names")
+
+#Get rid of Row.names column
+rownames(expr.mean) <- expr.mean[,1]
+expr.mean <- expr.mean[,-1]
+
+#Check that merge worked correctly
+stopifnot(
+  ncol(expr.mean) == 
+    ncol(g.8786.M.rv) +
+    ncol(gpl.4291.means) +
+    ncol(gpl.4293.means) +
+    ncol(gpl.8523.rv.M) +
+    ncol(gpl.8562.rv.M) +
+    ncol(gpl.8561.means) +
+    ncol(g.8839.means)
+  )
+
 
 # 3 - Exclude arrays identified in QC as erroneous
 
 excluded <- read.table("excluded_arrays.txt", head=F, stringsAsFactors=F)[,1]
 cols.excl <- which(colnames(expr) %in% excluded)
+cols.mean.excl <- which(colnames(expr.mean) %in% excluded)
 
 length(cols.excl)
+length(cols.mean.excl)
 #[1] 24 excluded because of bad MA plots
 
 #Check that right number of columns will be excluded
 stopifnot(length(excluded)==length(cols.excl))
 
-
+#Discretized data
 ncol(expr)
 #[1] 290
 expr <- expr[,-cols.excl]
@@ -355,8 +402,36 @@ write(header, f)
 write.table(expr, f, quote=F, row.names=T, col.names=F, sep="\t")
 close(f)
 
-
-
-
 #save for later use
 save(expr, file=OUT_RFILE)
+
+
+#Mean data
+ncol(expr.mean)
+#[1] 290
+expr.mean <- expr.mean[,-cols.excl]
+290 - ncol(expr.mean)
+#24, all the arrays excluded
+
+ncol(expr.mean)
+#[1] 266
+
+#Filter out arrays with less than 10 DE genes in the discretized data
+expr.mean <- expr.mean[,-lt.10]
+stopifnot(266 - ncol(expr.mean) == 23)
+
+#Remove any genes that are coded no change for all arrays in discretized data
+expr.mean <- expr.mean[!all_nochange,]
+
+dim(expr.mean)
+#[1] 3458  243
+
+expr.mean <- expr.mean[,-bad_array]
+dim(expr.mean)
+#[1] 3458  229
+
+#check that right number excluded
+stopifnot(243-ncol(expr.mean) == 14)
+
+#save for later
+save(expr.mean, file="expr.mean.RData")
