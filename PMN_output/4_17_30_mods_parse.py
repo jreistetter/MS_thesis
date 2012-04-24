@@ -70,8 +70,8 @@ def parse_modules(path, out):
 def parse_members(path):
     f = open(path, 'r')
     txt = f.read()
-    mod_txt = txt.split('Assignments.............\n')[1].split('\n')
-
+    mod_txt = txt.split('Assignments.............\n')[1].strip().split('\n')
+ 
     modules = []
     
     for mod in mod_txt:
@@ -97,7 +97,7 @@ def main():
     mods_path = root_path + '4.17.12.30_mods_output.txt'
     out_path = root_path + '4.17.30_mods_parsed.txt'
     
-    parse_modules(mods_path, out_path)
+    parse_modules(mods_path, out_path) 
 
     
 
