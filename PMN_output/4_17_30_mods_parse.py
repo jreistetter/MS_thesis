@@ -16,7 +16,7 @@ class Mod:
 
         else:
             for cpd_list in self.cpd:
-                line = self.name + '\t'
+                line = self.name.strip() + '\t'
                 line += ' '.join(self.parents)
                 line += '\t' + cpd_list[0] + '\t'
                 line += '\t'.join(cpd_list[1])
