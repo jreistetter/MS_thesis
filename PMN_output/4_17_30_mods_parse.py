@@ -66,15 +66,40 @@ def parse_modules(path, out):
     for block in par_blocks:
         mod = Mod(parse_par_block(block))
         mod.print_mod(out_f)
+
+def parse_members(path):
+    f = open(path, 'r')
+    txt = f.read()
+    mod_txt = txt.split('Assignments.............\n')[1].split('\n')
+
+    modules = []
+    
+    for mod in mod_txt:
+        vals = mod.split(':')
+        mod_id = vals[0].split('{')[1].strip(' }')
+
+        mod_members = []
+
+        for val in vals[1].split():
+            if 'RV' in val:
+                mod_members.append(val)
+
+        modules.append(tuple([mod_id, mod_members]))
+
+    return modules
+        
+
     
     
 def main():
     import os
-    root_path = '~/Dropbox/thesis_work/PMN_output/'
-    mods_path = os.path.expanduser(root_path) + '4.17.12.30_mods_output.txt'
-    out_path = mods_path + '4.17.30_mods_parsed.txt'
+    root_path = os.path.expanduser('~/Dropbox/thesis_work/PMN_output/')
+    mods_path = root_path + '4.17.12.30_mods_output.txt'
+    out_path = root_path + '4.17.30_mods_parsed.txt'
     
     parse_modules(mods_path, out_path)
+
+    
 
 
 if __name__ == '__main__':
