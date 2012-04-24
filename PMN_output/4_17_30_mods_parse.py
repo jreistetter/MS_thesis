@@ -143,10 +143,12 @@ def main():
     
     out_path = root_path + '4.17.30_mods_parsed.txt'
     members_out = root_path + '4.17.30_mods_members.txt'
+    pathways_out = root_path + '4.17.30_mods_pathways.txt'
     
     
     parse_modules(mods_path, out_path)
     parse_members(mods_path, members_out)
+    parse_pathways(protein_path, pathways_out)
 
 
 if __name__ == '__main__':
