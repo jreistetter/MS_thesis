@@ -32,6 +32,16 @@ class GeneList:
         for gene in self.genes:
             line = self.name + '\t' + gene + '\n'
             file_obj.write(line)
+
+class Pathway:
+    """Holds the genes that are pathway leading to module"""
+    def __init__(self, tup):
+        self.name = tup[0]
+        self.genes = tup[1]
+
+    def print_mod(self, file_obj):
+        line = self.name + ':' + '\t'.join(self.genes) + '\n'
+        file_obj.write(line)
         
     
 
