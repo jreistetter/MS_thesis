@@ -115,8 +115,9 @@ def parse_pathways(path, out):
     f = open(path, 'r')
     txt = f.read()
     path_chunks = txt.strip().split('\n')
-    output = []
 
+    out_f = open(out, 'w')
+ 
     for chunk in path_chunks:
         vals = chunk.split(':')
         mod_id = vals[1].strip().split(' ')[1]
@@ -128,9 +129,8 @@ def parse_pathways(path, out):
                 #List has pRV0667, remove p and append
                 proteins.append(val[1:])
 
-        output.append(tuple([mod_id, proteins]))
-
-    return output
+        pathway = Pathway(tuple([mod_id, proteins]))
+        pathway.print_mod(out_f)
             
             
    
