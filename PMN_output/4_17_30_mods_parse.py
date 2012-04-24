@@ -78,15 +78,18 @@ def parse_modules(path, out):
         mod = Mod(parse_par_block(block))
         mod.print_mod(out_f)
 
-def parse_members(path):
+def parse_members(path, out):
     f = open(path, 'r')
     txt = f.read()
     mod_txt = txt.split('Assignments.............\n')[1].strip().split('\n')
- 
-    modules = []
+
+    out_f = open(out, 'w')
+    headers = ['moduleID', 'gene']
+    out_f.write('\t'.join(headers) + '\n')
     
-    for mod in mod_txt:
-        vals = mod.split(':')
+    
+    for mod_chunk in mod_txt:
+        vals = mod_chunk.split(':')
         mod_id = vals[0].split('{')[1].strip(' }')
 
         mod_members = []
@@ -95,21 +98,19 @@ def parse_members(path):
             if 'RV' in val:
                 mod_members.append(val)
 
-        modules.append(tuple([mod_id, mod_members]))
-
-    return modules
-        
-
-    
+        mod = GeneList(tuple([mod_id, mod_members]))
+        mod.print_mod(out_f)    
+   
     
 def main():
     import os
     root_path = os.path.expanduser('~/Dropbox/thesis_work/PMN_output/')
     mods_path = root_path + '4.17.12.30_mods_output.txt'
     out_path = root_path + '4.17.30_mods_parsed.txt'
+    members_out = root_path + '4.17.30_mods_members.txt'
     
-    parse_modules(mods_path, out_path) 
-
+    parse_modules(mods_path, out_path)
+    parse_members(mods_path, members_out)
     
 
 
