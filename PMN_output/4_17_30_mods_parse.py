@@ -21,6 +21,17 @@ class Mod:
                 line += '\t' + cpd_list[0] + '\t'
                 line += '\t'.join(cpd_list[1])
                 file_obj.write(line + '\n')
+
+class GeneList:
+    """Holds the genes assigned to a module"""
+    def __init__(self, tup):
+        self.name = tup[0]
+        self.genes = tup[1]
+
+    def print_mod(self, file_obj):
+        for gene in self.genes:
+            line = self.name + '\t' + gene + '\n'
+            file_obj.write(line)
         
     
 
