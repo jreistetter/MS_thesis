@@ -23,7 +23,8 @@ get_rv <- function(pipe_list){
 #########################
 #       Main
 #########################
-library(topGO)
+library(GOstats)
+library(GSEABase)
 #Load data
 
 #OHSU
@@ -55,37 +56,13 @@ stopifnot(sum(grepl("RV", rv.ids, fixed=T))==nrow(go.rv)) #Check that all are Rv
 stopifnot(sum(is.na(rv.ids))==0) #check for NAs
 
 #Create data frame with GO term and gene
-go.mtb.mappings <- data.frame(GO=go.rv[,5], gene=rv.ids)
+go.mtb.mappings <- data.frame(go_id=go.rv[,5], evidence=go.rv[,7], gene_id=rv.ids)
 
-stopifnot(sum(is.na(go.mtb.mappings$GO))==0)
+stopifnot(sum(is.na(go.mtb.mappings$go_id))==0)
 
+goFrame <- GOFrame(go.mtb.mappings, organism="Mtb H37Rv")
+goAllFrame <- GOAllFrame(goFrame)
 
-# Write out mappings in format to read back in with topGO
-#Format: geneID\tgo1,go2,go3....
+H37Rv.gsc <- GeneSetCollection(goAllFrame, setType=GOCollection())
 
-#Build list of genes and their associated GO terms
-geneGO <- list()
-gene.ids <- unique(go.mtb.mappings$gene)
-length(gene.ids)
-#[1] 2312
-
-out_file <- file("GO_mappings.txt", "w")
-
-for (gene in gene.ids){
-  gene.gos <- go.mtb.mappings[go.mtb.mappings$gene == gene,1]
-  gos.csv <- paste(gene.gos, collapse=", ")
-  line <- paste(c(gene, "\t ", gos.csv), collapse="")
-  write(line, out_file, append=T)
-}
-
-close(out_file)
-
-#Convert to GO object
-mtb.GO.db <- readMappings("GO_mappings.txt")
-
-#Save for use in later script
-save(mtb.GO.db, file="mtb.GO.db.RData")
-
-
-
-
+save(H37Rv.gsc, file="H37Rv.gsc.RData")
