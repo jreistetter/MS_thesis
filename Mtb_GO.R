@@ -57,8 +57,10 @@ stopifnot(sum(is.na(rv.ids))==0) #check for NAs
 
 #Create data frame with GO term and gene
 go.mtb.mappings <- data.frame(go_id=go.rv[,5], evidence=go.rv[,7], gene_id=rv.ids)
-
 stopifnot(sum(is.na(go.mtb.mappings$go_id))==0)
+
+universe <- unique(go.mtb.mappings$gene_id)
+save(universe, file="universe.RData")
 
 goFrame <- GOFrame(go.mtb.mappings, organism="Mtb H37Rv")
 goAllFrame <- GOAllFrame(goFrame)
