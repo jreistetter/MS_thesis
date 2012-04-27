@@ -67,7 +67,7 @@ n_changed.8 <- count_changed(cpds.non_uniform, 0.8)
 
 #Module membership
 mod_members <- read.table("4.17.30_mods_members.txt",
-                       head=T, sep='\t', strngsAsFactors=F)
+                       head=T, sep='\t', stringsAsFactors=F)
 
 #Number of genes per module
 mod_sizes <- as.data.frame(table(mod_members$moduleID))
