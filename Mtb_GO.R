@@ -23,7 +23,7 @@ get_rv <- function(pipe_list){
 #########################
 #       Main
 #########################
-
+library(topGO)
 #Load data
 
 #OHSU
@@ -60,8 +60,31 @@ go.mtb.mappings <- data.frame(GO=go.rv[,5], gene=rv.ids)
 stopifnot(sum(is.na(go.mtb.mappings$GO))==0)
 
 
+# Write out mappings in format to read back in with topGO
+#Format: geneID\tgo1,go2,go3....
 
+#Build list of genes and their associated GO terms
+geneGO <- list()
+gene.ids <- unique(go.mtb.mappings$gene)
+length(gene.ids)
+#[1] 2312
 
+out_file <- file("GO_mappings.txt", "w")
+
+for (gene in gene.ids){
+  gene.gos <- go.mtb.mappings[go.mtb.mappings$gene == gene,1]
+  gos.csv <- paste(gene.gos, collapse=", ")
+  line <- paste(c(gene, "\t ", gos.csv), collapse="")
+  write(line, out_file, append=T)
+}
+
+close(out_file)
+
+#Convert to GO object
+mtb.GO.db <- readMappings("GO_mappings.txt")
+
+#Save for use in later script
+save(mtb.GO.db, file="mtb.GO.db.RData")
 
 
 
