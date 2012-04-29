@@ -81,12 +81,16 @@ mod_members <- mod_members.raw[mod_members.raw$gene %in% universe,]
 dim(mod_members)
 #[1] 2075    2, so ~1400 have no associated GO term
 
+#Set the universe to be all genes present in the analysis that have GO terms
 my.universe <- mod_members$gene
 
+#Only analyze modules with at least 1 meaningful probability
+
+#Load in module statistics
 mod.stats <- read.table("../PMN_output/4.17_30mods_genes_pathsizes.txt",
                         head=T, sep='\t')
+#Filter on number of probabilities > 0.4
 mod.good <- mod.stats[mod.stats$thresh.0.4 > 0,]$moduleID
-
 mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
 
 all.mods.BP <- mod.hyper.batch(mod_members.good, my.universe, "BP")
@@ -101,8 +105,5 @@ mods.GO.enrichment <- rbind(all.mods.BP, all.mods.CC)
 mods.GO.enrichment <- rbind(mods.GO.enrichment, all.mods.MF)
 
 write.table(mods.GO.enrichment, file="./GO/4.17_module_GO_enrichment.txt",
-            col.names=T, row.names=F, quote=F, sep='\t')
-
-write.table(all.mods.BP, file="./GO/modules.BP.enrichment.txt",
             col.names=T, row.names=F, quote=F, sep='\t')
 
