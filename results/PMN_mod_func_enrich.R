@@ -23,11 +23,15 @@ mod.hyper <- function(name, mod_genes, universe_genes,
   return(results)
 }
 
-mod.hyper.batch <- function(mod_members, universe, ontology, 
+mod.hyper.batch <- function(mod_members, mod_parents, universe, ontology, 
                             pvalue=0.05, categorySize=5, conditional=F){
   
   mods <- unique(mod_members$moduleID)
   mod1.genes <- mod_members[mod_members$moduleID==mods[1],2]
+  mod1.parents <- mod_parents[mod_parents$moduleID==mods[1],2]
+  mod1.parents <- unlist(strsplit(mod1.parents, " ", fixed=T))
+  mods1.genes <- c(mod1.genes, mod1.parents)
+  
   results <- mod.hyper(mods[1], mod1.genes, universe,
                        ontology, pvalue, categorySize, conditional)
   
@@ -39,6 +43,9 @@ mod.hyper.batch <- function(mod_members, universe, ontology,
   
   for (mod in mods[2:length(mods)]){
     mod.genes <- mod_members[mod_members$moduleID==mod,2]
+    mod.parents <- mod_parents[mod_parents$moduleID==mod,2]
+    mod.parents <- unlist(strsplit(mod.parents, " ", fixed=T))
+    mods.genes <- c(mod.genes, mod.parents)
     mod.results <- mod.hyper(mod, mod.genes, universe, 
                              ontology, pvalue, categorySize, conditional)
     
@@ -80,6 +87,9 @@ dim(mod_members.raw)
 mod_members <- mod_members.raw[mod_members.raw$gene %in% universe,]
 dim(mod_members)
 #[1] 2075    2, so ~1400 have no associated GO term
+
+mod_parents <- read.table("../PMN_output/4.17.30_mods_parsed.txt",
+                          head=T, sep='\t')
 
 #Set the universe to be all genes present in the analysis that have GO terms
 my.universe <- mod_members$gene
