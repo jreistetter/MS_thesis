@@ -8,14 +8,14 @@ options(stringsAsFactors=F)
 library(GOstats)
 
 mod.hyper <- function(name, mod_genes, universe_genes, 
-                      ontology, pvalue=0.05, categorySize=5){
+                      ontology, pvalue=0.05, categorySize=5, conditional=F){
   params <- GSEAGOHyperGParams(name=name,
                                geneSetCollection=H37Rv.gsc,
                                geneIds=mod_genes,
                                universeGeneIds=universe_genes,
                                ontology=ontology,
                                pvalueCutoff=0.05,
-                               conditional=F,
+                               conditional=conditional,
                                testDirection="over")
   
   mod.test <- hyperGTest(params)
@@ -24,12 +24,12 @@ mod.hyper <- function(name, mod_genes, universe_genes,
 }
 
 mod.hyper.batch <- function(mod_members, universe, ontology, 
-                            pvalue=0.05, categorySize=5){
+                            pvalue=0.05, categorySize=5, conditional=F){
   
   mods <- unique(mod_members$moduleID)
   mod1.genes <- mod_members[mod_members$moduleID==mods[1],2]
   results <- mod.hyper(mods[1], mod1.genes, universe,
-                       ontology, pvalue, categorySize)
+                       ontology, pvalue, categorySize, conditional)
   
   #If no results returned, then put in NA values for the module
   if (nrow(results) == 0){
@@ -40,7 +40,7 @@ mod.hyper.batch <- function(mod_members, universe, ontology,
   for (mod in mods[2:length(mods)]){
     mod.genes <- mod_members[mod_members$moduleID==mod,2]
     mod.results <- mod.hyper(mod, mod.genes, universe, 
-                             ontology, pvalue, categorySize)
+                             ontology, pvalue, categorySize, conditional)
     
     if (nrow(mod.results) == 0){
       mod.results[1,] <- rep(NA,7)
@@ -93,6 +93,7 @@ mod.stats <- read.table("../PMN_output/4.17_30mods_genes_pathsizes.txt",
 mod.good <- mod.stats[mod.stats$thresh.0.4 > 0,]$moduleID
 mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
 
+#Not conditioned
 all.mods.BP <- mod.hyper.batch(mod_members.good, my.universe, "BP")
 all.mods.CC <- mod.hyper.batch(mod_members.good, my.universe, "CC")
 all.mods.MF <- mod.hyper.batch(mod_members.good, my.universe, "MF")
@@ -107,3 +108,22 @@ mods.GO.enrichment <- rbind(mods.GO.enrichment, all.mods.MF)
 write.table(mods.GO.enrichment, file="./GO/4.17_module_GO_enrichment.txt",
             col.names=T, row.names=F, quote=F, sep='\t')
 
+
+
+#Conditioned on GO structure
+cond.mods.BP <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "BP", conditional=T)
+cond.mods.CC <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "CC", conditional=T)
+cond.mods.MF <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "MF", conditional=T)
+
+colnames(cond.mods.BP)[1] <- "GO_ID"
+colnames(cond.mods.CC)[1] <- "GO_ID"
+colnames(cond.mods.MF)[1] <- "GO_ID"
+
+mods.cond.GO.enrichment <- rbind(cond.mods.BP, cond.mods.CC)
+mods.cond.GO.enrichment <- rbind(mods.cond.GO.enrichment, cond.mods.MF)
+
+write.table(mods.cond.GO.enrichment, file="GO/4.17module_func_enrichment_conditional.txt",
+            col.names=T, row.names=F, quote=F, sep='\t')
