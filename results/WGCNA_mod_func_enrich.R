@@ -8,14 +8,14 @@ options(stringsAsFactors=F)
 library(GOstats)
 
 mod.hyper <- function(name, mod_genes, universe_genes, 
-                      ontology, pvalue=0.05, categorySize=5){
+                      ontology, pvalue=0.05, categorySize=5, conditional=F){
   params <- GSEAGOHyperGParams(name=name,
                                geneSetCollection=H37Rv.gsc,
                                geneIds=mod_genes,
                                universeGeneIds=universe_genes,
                                ontology=ontology,
                                pvalueCutoff=0.05,
-                               conditional=F,
+                               conditional=conditional,
                                testDirection="over")
   
   mod.test <- hyperGTest(params)
@@ -24,12 +24,12 @@ mod.hyper <- function(name, mod_genes, universe_genes,
 }
 
 mod.hyper.batch <- function(mod_members, universe, ontology, 
-                            pvalue=0.05, categorySize=5){
+                            pvalue=0.05, categorySize=5, conditional=F){
   
   mods <- unique(mod_members$moduleID)
   mod1.genes <- mod_members[mod_members$moduleID==mods[1],2]
   results <- mod.hyper(mods[1], mod1.genes, universe,
-                       ontology, pvalue, categorySize)
+                       ontology, pvalue, categorySize, conditional)
   
   #If no results returned, then put in NA values for the module
   if (nrow(results) == 0){
@@ -40,7 +40,7 @@ mod.hyper.batch <- function(mod_members, universe, ontology,
   for (mod in mods[2:length(mods)]){
     mod.genes <- mod_members[mod_members$moduleID==mod,2]
     mod.results <- mod.hyper(mod, mod.genes, universe, 
-                             ontology, pvalue, categorySize)
+                             ontology, pvalue, categorySize, conditional)
     
     if (nrow(mod.results) == 0){
       mod.results[1,] <- rep(NA,7)
