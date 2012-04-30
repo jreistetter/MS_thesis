@@ -90,7 +90,7 @@ my.universe <- mod_members$gene
 mod.stats <- read.table("../PMN_output/4.17_30mods_genes_pathsizes.txt",
                         head=T, sep='\t')
 #Filter on number of probabilities > 0.4
-mod.good <- mod.stats[mod.stats$thresh.0.4 > 0,]$moduleID
+mod.good <- mod.stats[mod.stats$thresh.0.2 > 0,]$moduleID
 mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
 
 #Not conditioned
