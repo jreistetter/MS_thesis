@@ -29,8 +29,8 @@ mod.hyper.batch <- function(mod_members, mod_parents, universe, ontology,
   mods <- unique(mod_members$moduleID)
   mod1.genes <- mod_members[mod_members$moduleID==mods[1],2]
   mod1.parents <- mod_parents[mod_parents$moduleID==mods[1],2]
-  mod1.parents <- unlist(strsplit(mod1.parents, " ", fixed=T))
-  mods1.genes <- c(mod1.genes, mod1.parents)
+  mod1.parents <- unique(unlist(strsplit(mod1.parents, " ", fixed=T)))
+  mod1.genes <- c(mod1.genes, mod1.parents)
   
   results <- mod.hyper(mods[1], mod1.genes, universe,
                        ontology, pvalue, categorySize, conditional)
@@ -44,8 +44,8 @@ mod.hyper.batch <- function(mod_members, mod_parents, universe, ontology,
   for (mod in mods[2:length(mods)]){
     mod.genes <- mod_members[mod_members$moduleID==mod,2]
     mod.parents <- mod_parents[mod_parents$moduleID==mod,2]
-    mod.parents <- unlist(strsplit(mod.parents, " ", fixed=T))
-    mods.genes <- c(mod.genes, mod.parents)
+    mod.parents <- unique(unlist(strsplit(mod.parents, " ", fixed=T)))
+    mod.genes <- c(mod.genes, mod.parents)
     mod.results <- mod.hyper(mod, mod.genes, universe, 
                              ontology, pvalue, categorySize, conditional)
     
@@ -104,9 +104,9 @@ mod.good <- mod.stats[mod.stats$thresh.0.2 > 0,]$moduleID
 mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
 
 #Not conditioned
-all.mods.BP <- mod.hyper.batch(mod_members.good, my.universe, "BP")
-all.mods.CC <- mod.hyper.batch(mod_members.good, my.universe, "CC")
-all.mods.MF <- mod.hyper.batch(mod_members.good, my.universe, "MF")
+all.mods.BP <- mod.hyper.batch(mod_members.good, mod_parents, my.universe, "BP")
+all.mods.CC <- mod.hyper.batch(mod_members.good, mod_parents, my.universe, "CC")
+all.mods.MF <- mod.hyper.batch(mod_members.good, mod_parents, my.universe, "MF")
 
 colnames(all.mods.BP)[1] <- "GO_ID"
 colnames(all.mods.CC)[1] <- "GO_ID"
@@ -121,11 +121,11 @@ write.table(mods.GO.enrichment, file="./GO/4.17_module_GO_enrichment.txt",
 
 
 #Conditioned on GO structure
-cond.mods.BP <- mod.hyper.batch(mod_members.good, 
+cond.mods.BP <- mod.hyper.batch(mod_members.good, mod_parents,
                                 my.universe, "BP", conditional=T)
-cond.mods.CC <- mod.hyper.batch(mod_members.good, 
+cond.mods.CC <- mod.hyper.batch(mod_members.good, mod_parents,
                                 my.universe, "CC", conditional=T)
-cond.mods.MF <- mod.hyper.batch(mod_members.good, 
+cond.mods.MF <- mod.hyper.batch(mod_members.good, mod_parents,
                                 my.universe, "MF", conditional=T)
 
 colnames(cond.mods.BP)[1] <- "GO_ID"
