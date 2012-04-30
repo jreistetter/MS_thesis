@@ -92,7 +92,7 @@ good.mods <- perm.test[(perm.test[,5] < 0.005 & perm.test[,2] < 200),1]
 
 mod_members.good <- mod_members[mod_members$moduleID%in%good.mods,]
 
-
+#Non-conditional
 all.mods.BP <- mod.hyper.batch(mod_members.good, my.universe, "BP")
 all.mods.CC <- mod.hyper.batch(mod_members.good, my.universe, "CC")
 all.mods.MF <- mod.hyper.batch(mod_members.good, my.universe, "MF")
@@ -107,5 +107,22 @@ mods.GO.enrichment <- rbind(mods.GO.enrichment, all.mods.MF)
 write.table(mods.GO.enrichment, file="GO/WGCNA_func_enrichment.txt",
             col.names=T, row.names=F, quote=F, sep='\t')
 
+#Conditioned on GO structure
+cond.mods.BP <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "BP", conditional=T)
+cond.mods.CC <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "CC", conditional=T)
+cond.mods.MF <- mod.hyper.batch(mod_members.good, 
+                                my.universe, "MF", conditional=T)
+
+colnames(cond.mods.BP)[1] <- "GO_ID"
+colnames(cond.mods.CC)[1] <- "GO_ID"
+colnames(cond.mods.MF)[1] <- "GO_ID"
+
+mods.cond.GO.enrichment <- rbind(cond.mods.BP, cond.mods.CC)
+mods.cond.GO.enrichment <- rbind(mods.cond.GO.enrichment, cond.mods.MF)
+
+write.table(mods.cond.GO.enrichment, file="GO/WGCNA_func_enrichment_conditional.txt",
+            col.names=T, row.names=F, quote=F, sep='\t')
 
 
