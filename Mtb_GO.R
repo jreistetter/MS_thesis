@@ -20,6 +20,22 @@ get_rv <- function(pipe_list){
   return(rv_id)
 }
 
+mod_to_goeast <- function(modID, mod_members, mod_parents){
+  mod.genes <- mod_members[mod_members$moduleID==modID,]$gene
+  mod.parents <- mod_parents[mod_parents$moduleID==modID,2]
+  mod.parents <- unique(unlist(strsplit(mod.parents, " ", fixed=T)))
+  fname = paste(modID, ".txt", sep="")
+  write.table(c(mod.genes, mod.parents), fname, 
+              quote=F, row.names=F, col.names=F)
+}
+
+mods_GOEAST <- function(mod_members, mod_parents){
+  modIDs <- unique(mod_members$moduleID)
+  for (mod in modIDs){
+    mod_to_goeast(mod, mod_members, mod_parents)
+  }
+}
+
 #########################
 #       Main
 #########################
@@ -75,14 +91,102 @@ save(H37Rv.gsc, file="H37Rv.gsc.RData")
 # probeID  GOIDs	annotation(optional)
 # probe1	GO:0003985 // GO:0003987 // GO:0004262	annotation of probe1
 
+#Module membership
+mod_members.raw <- read.table("../../PMN_output/4.17.30_mods_members.txt",
+                              head=T, sep='\t')
+dim(mod_members.raw)
+#[1] 3458    2
+
+#Filter out members not in the universe:
+mod_members <- mod_members.raw[mod_members.raw$gene %in% universe,]
+dim(mod_members)
+#[1] 2075    2, so ~1400 have no associated GO term
+
+mod_parents <- read.table("../../PMN_output/4.17.30_mods_parsed.txt",
+                          head=T, sep='\t')
+
+#Set the universe to be all genes present in the analysis that have GO terms
+my.universe <- mod_members$gene
+
+#Only analyze modules with at least 1 meaningful probability
+
+#Load in module statistics
+mod.stats <- read.table("../../PMN_output/4.17_30mods_genes_pathsizes.txt",
+                        head=T, sep='\t')
+#Filter on number of probabilities > 0.4
+mod.good <- mod.stats[mod.stats$thresh.0.2 > 0,]$moduleID
+mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
+dim(mod_members.good)
+#[1] 561   2 561 genes in the good modules
+
 #Create list of GO terms mapped to each gene
-goeast <- file("GOEAST.annot", "w")
+goeast <- file("GOEAST/GOEAST.annot.txt", "w")
 write("probeID\tGOIDs", goeast, append=T)
 
-for (gene in unique(go.mtb.mappings$gene_id)){
+for (gene in my.universe){
   gene.GO <- go.mtb.mappings[go.mtb.mappings$gene_id==gene,1]
   go.format <- paste(gene.GO, collapse=" // ")
   line <- paste(gene, go.format, sep="\t")
   write(line, goeast, append=T)
   
 }
+
+close(goeast)
+
+# Write out all the modules
+mods_GOEAST(mod_members.good, mod_parents)
+
+#Now do WGCNA modules
+load("universe.RData")
+
+#Load the WGCNA modules
+load("../exprs/filt_pt5.net.RData")
+
+wgcna.mod_members.raw <- data.frame(moduleID=filt_pt5.net@mergedColors,
+                              gene=filt_pt5.net@peptides)
+dim(wgcna.mod_members.raw)
+#[1] 2158    2
+
+
+#Filter out members not in the universe:
+wgcna.mod_members <- wgcna.mod_members.raw[wgcna.mod_members.raw$gene %in% universe,]
+dim(wgcna.mod_members)
+#[1] 1336    2, so ~800 have no associated GO term
+
+#Set the universe to be all genes present in the analysis 
+#that have GO terms
+wgcna.universe <- wgcna.mod_members$gene
+
+#Create list of GO terms mapped to each gene
+goeast <- file("GOEAST/WGCNA.annot.txt", "w")
+write("probeID\tGOIDs", goeast, append=T)
+
+for (gene in wgcna.universe){
+  gene.GO <- go.mtb.mappings[go.mtb.mappings$gene_id==gene,1]
+  go.format <- paste(gene.GO, collapse=" // ")
+  line <- paste(gene, go.format, sep="\t")
+  write(line, goeast, append=T)
+  
+}
+
+close(goeast)
+
+
+#Filter modules with the permutation test results
+perm.test <- filt_pt5.net@permtest
+good.mods <- perm.test[(perm.test[,5] < 0.005 & perm.test[,2] < 200),1]
+
+wgcna.mod_members.good <- wgcna.mod_members[wgcna.mod_members$moduleID%in%good.mods,]
+
+for (mod in unique(wgcna.mod_members.good$moduleID)){
+  mod.genes <- wgcna.mod_members.good[wgcna.mod_members.good$moduleID==mod,]$gene
+  fname = paste(c("WGCNA_", mod, ".txt"), collapse="")
+  write.table(mod.genes, fname, col.names=F, row.names=F, quote=F)
+}
+
+
+
+
+
+
+

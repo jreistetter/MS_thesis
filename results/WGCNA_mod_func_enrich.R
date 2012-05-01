@@ -14,7 +14,7 @@ mod.hyper <- function(name, mod_genes, universe_genes,
                                geneIds=mod_genes,
                                universeGeneIds=universe_genes,
                                ontology=ontology,
-                               pvalueCutoff=0.05,
+                               pvalueCutoff=pvalue,
                                conditional=conditional,
                                testDirection="over")
   
@@ -83,15 +83,14 @@ mod_members <- mod_members.raw[mod_members.raw$gene %in% universe,]
 dim(mod_members)
 #[1] 1336    2, so ~800 have no associated GO term
 
-#Set the universe to be all genes present in the analysis that have GO terms
-my.universe <- mod_members$gene
-
 #Filter modules with the permutation test results
 perm.test <- filt_pt5.net@permtest
 good.mods <- perm.test[(perm.test[,5] < 0.005 & perm.test[,2] < 200),1]
 
 mod_members.good <- mod_members[mod_members$moduleID%in%good.mods,]
 
+#Set the universe to be all genes present in the analysis that have GO terms
+my.universe <- mod_members.good$gene
 #Non-conditional
 all.mods.BP <- mod.hyper.batch(mod_members.good, my.universe, "BP")
 all.mods.CC <- mod.hyper.batch(mod_members.good, my.universe, "CC")

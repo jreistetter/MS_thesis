@@ -14,7 +14,7 @@ mod.hyper <- function(name, mod_genes, universe_genes,
                                geneIds=mod_genes,
                                universeGeneIds=universe_genes,
                                ontology=ontology,
-                               pvalueCutoff=0.05,
+                               pvalueCutoff=pvalue,
                                conditional=conditional,
                                testDirection="over")
   
