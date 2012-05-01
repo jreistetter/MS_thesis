@@ -68,3 +68,21 @@ goAllFrame <- GOAllFrame(goFrame)
 H37Rv.gsc <- GeneSetCollection(goAllFrame, setType=GOCollection())
 
 save(H37Rv.gsc, file="H37Rv.gsc.RData")
+
+
+# Write out file format for GOEAST
+# Format is:
+# probeID  GOIDs	annotation(optional)
+# probe1	GO:0003985 // GO:0003987 // GO:0004262	annotation of probe1
+
+#Create list of GO terms mapped to each gene
+goeast <- file("GOEAST.annot", "w")
+write("probeID\tGOIDs", goeast, append=T)
+
+for (gene in unique(go.mtb.mappings$gene_id)){
+  gene.GO <- go.mtb.mappings[go.mtb.mappings$gene_id==gene,1]
+  go.format <- paste(gene.GO, collapse=" // ")
+  line <- paste(gene, go.format, sep="\t")
+  write(line, goeast, append=T)
+  
+}
