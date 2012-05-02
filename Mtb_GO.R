@@ -114,10 +114,13 @@ my.universe <- mod_members$gene
 mod.stats <- read.table("../../PMN_output/4.17_30mods_genes_pathsizes.txt",
                         head=T, sep='\t')
 #Filter on number of probabilities > 0.4
-mod.good <- mod.stats[mod.stats$thresh.0.2 > 0,]$moduleID
+mod.good <- mod.stats[mod.stats$thresh.0.2 > 0 & mod.stats$n_genes < 100,]$moduleID
+length(mod.good)
+#[1] 15 modules passing QC
+
 mod_members.good <- mod_members[mod_members$moduleID %in% mod.good,]
 dim(mod_members.good)
-#[1] 561   2 561 genes in the good modules
+#[1] 389   2 561 genes in the good modules
 
 #Create list of GO terms mapped to each gene
 goeast <- file("GOEAST/GOEAST.annot.txt", "w")
@@ -130,11 +133,40 @@ for (gene in my.universe){
   write(line, goeast, append=T)
   
 }
-
 close(goeast)
 
 # Write out all the modules
 mods_GOEAST(mod_members.good, mod_parents)
+
+# Regulator enrichment
+#Pull out the parents. Note they are stored as a space delimited
+#string (if there are 2 parents). Need to reformat into a 
+#character vector of individual Rv IDs
+parents.raw <- mod_parents[mod_parents$moduleID %in% mod.good,]$parents
+
+parents <- unique(unlist(
+  sapply(parents.raw, function(x) unlist(strsplit(x, " ", fixed=T)))
+  ))
+
+length(parents)
+#[1] 20
+write.table(parents, "GOEAST/regulators.txt", quote=F, row.names=F, col.names=F)
+
+reg.universe <- read.table("../regulators/final.regulators")[,1]
+#Create list of GO terms mapped to each gene
+goeast <- file("GOEAST/regulators.annot.txt", "w")
+write("probeID\tGOIDs", goeast, append=T)
+
+for (gene in reg.universe){
+  gene.GO <- go.mtb.mappings[go.mtb.mappings$gene_id==gene,1]
+  go.format <- paste(gene.GO, collapse=" // ")
+  line <- paste(gene, go.format, sep="\t")
+  write(line, goeast, append=T)
+  
+}
+close(goeast)
+
+
 
 #Now do WGCNA modules
 load("universe.RData")
