@@ -101,6 +101,7 @@ save(BUGS58.samples, file="EBUGS58/BUGS58.samples.RData")
 #########################
 
 BUGS58.arrays <- readBUGS(BUGS58.samples, dir="EBUGS58/E-BUGS-58_analysed")
+rownames(BUGS58.arrays) <- toupper(rownames(BUGS58.arrays))
 save(BUGS58.arrays, file="EBUGS58/EBUGS58.arrays.RData")
 
 
