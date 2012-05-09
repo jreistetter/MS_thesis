@@ -21,63 +21,14 @@ selectGenes <- function(genes, arrays){
   return(genes.expr)
 }
 
-#ICSNP package functions
-calcHotellings <- function(mod.expr, grouping){
-  result <- HotellingsT2(mod.expr ~ as.factor(grouping))
-  return(result$p.value)
-}
-
-module.ICSNP <- function(modIDs, modules, arrays, grouping){
-  results <- list()
-  
-  for (mod in modIDs){
-    mod.genes <- get_module(mod, modules)
-    mod.expr <- selectGenes(mod.genes, arrays)
-    mod.p <- calcHotellings(mod.expr, grouping)
-    results[[mod]] <- mod.p
-  }
-  
-  return(unlist(results))
-}
-
-
 #Hotelling package functions
 calc.Hotelling <- function(mod.expr, grouping){
   result <- Hott(mod.expr ~ as.factor(grouping), shrinkage=FALSE)
   return(result)
 }
 
-module.Hotelling <- function(modIDs, modules, parents, arrays, grouping, shrink=F){
-  results <- data.frame(moduleID=vector(mode="character"),
-                        p=vector(mode="numeric"),
-                        T_stat=vector(mode="numeric"),
-                        n_samp=vector(mode="integer"),
-                        n_vars=vector(mode="integer"))
-  
-  for (mod in modIDs){
-    #Get the subset of the expression data for the module
-    mod.genes <- get_module(mod, modules)
-    mod.expr <- selectGenes(mod.genes, arrays)
-    
-    #Split the expression matrix into the two groups
-    group1.id <- unique(grouping)[1]
-    group2.id <- unique(grouping)[2]
-    group1.rows <- which(grouping == group1.id)
-    group2.rows <- which(grouping == group2.id)
-    
-    group1.expr <- mod.expr[group1.rows,]
-    group2.expr <- mod.expr[group2.rows,]
-    
-    #Run the test and store the results
-    mod.out <- hotelling.test(group1.expr, group2.expr, shrinkage=shrink)
-    results <- rbind(results, c(mod, mod.out$pval, mod.out$stats$statistic, 
-                                mod.out$stats$nx, mod.out$stats$p))
-  }
-  
-  return(results)
-}
 
-module.Hotelling.formula <- function(modIDs, modules, arrays, grouping, 
+module.Hotelling <- function(modIDs, modules, arrays, grouping, 
                                      shrink=F, perm=T){
   results <- data.frame(moduleID=vector(mode="character"),
                         p=vector(mode="numeric"),
@@ -114,7 +65,7 @@ immune.time.DE <- function(samples, arrays, good.modules, modules, time){
   samp.sel <- samples[(samples$celltype != "Aerobic" & samples$time==time),]
   expr <- arrays[,colnames(arrays)%in%samp.sel$filename]
 
-  pvals <- module.Hotelling.formula(good.modules, modules, 
+  pvals <- module.Hotelling(good.modules, modules, 
                                                expr, samp.sel$celltype,
                                                shrink=T)
   
@@ -165,7 +116,7 @@ dim(expr.immune)
 
 
 
-dc_mac.p.shrink.perm <- module.Hotelling.formula(good.modules, modules, expr.immune, 
+dc_mac.p.shrink.perm <- module.Hotelling(good.modules, modules, expr.immune, 
                                 celltype, shrink=T)
 dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
 write.table(dc_mac.p.shrink.perm, "data/results/DC_vs_Mac_DE.txt",
@@ -183,7 +134,7 @@ expr.time.1.18 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%time.1.18$filename]
 dim(expr.time.1.18)
 #[1] 3765   24, 24 arrays
 
-time.1.18.pvals <- module.Hotelling.formula(good.modules, modules, 
+time.1.18.pvals <- module.Hotelling(good.modules, modules, 
                                             expr.time.1.18, time.1.18$time,
                                             shrink=T)
 time.1.18.pvals$p.adj <- p.adjust(time.1.18.pvals$p, method="BH")
@@ -196,7 +147,7 @@ expr.dc_mac_18h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_18h$filename
 dim(expr.dc_mac_18h)
 #[1] 3765   12
 
-dc_mac_18h.pvals <- module.Hotelling.formula(good.modules, modules, 
+dc_mac_18h.pvals <- module.Hotelling(good.modules, modules, 
                                             expr.dc_mac_18h, dc_mac_18h$celltype,
                                             shrink=T)
 dc_mac_18h.pvals$p.adj <- p.adjust(dc_mac_18h.pvals$p, method="BH")
@@ -210,7 +161,7 @@ expr.dc_mac_4h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_4h$filename]
 dim(expr.dc_mac_4h)
 #[1] 3765   12
 
-dc_mac_4h.pvals <- module.Hotelling.formula(good.modules, modules, 
+dc_mac_4h.pvals <- module.Hotelling(good.modules, modules, 
                                             expr.dc_mac_4h, dc_mac_4h$celltype,
                                             shrink=T)
 dc_mac_4h.pvals$p.adj <- p.adjust(dc_mac_4h.pvals$p, method="BH")
@@ -244,7 +195,7 @@ expr.mac.aer <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.aer.arr]
 dim(expr.mac.aer)
 #[1] 3765   26, 26 total arrays
 
-mac.aer.pvals <- module.Hotelling.formula(good.modules, modules, 
+mac.aer.pvals <- module.Hotelling(good.modules, modules, 
                                           expr.mac.aer, mac.aer.labels,
                                           shrink=T)
 mac.aer.pvals$p.adj <- p.adjust(mac.aer.pvals, method="BH")
@@ -256,7 +207,7 @@ expr.mac.1.4 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.1.4$filename]
 dim(expr.mac.1.4)
 #[1] 3765   12, 12 arrays
 
-mac.1.4.pvals <- module.Hotelling.formula(good.modules, modules, 
+mac.1.4.pvals <- module.Hotelling(good.modules, modules, 
                                           expr.mac.1.4, mac.1.4$time,
                                           shrink=T)
 
@@ -267,7 +218,7 @@ expr.mac.1.18 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.1.18$filename]
 dim(expr.mac.1.18)
 #[1] 3765   12, 12 arrays
 
-mac.1.18.pvals <- module.Hotelling.formula(good.modules, modules, 
+mac.1.18.pvals <- module.Hotelling(good.modules, modules, 
                                            expr.mac.1.18, mac.1.18$time,
                                            shrink=T)
 
