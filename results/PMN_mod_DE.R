@@ -9,6 +9,12 @@ get_module <- function(modID, modules){
   return(modules[modules$moduleID==modID,2])
 }
 
+get_parents <- function(modID, parents){
+  raw <- parents[parents$moduleID==modID,2]
+  parent.genes <- unique(unlist(strsplit(raw, " ", fixed=T)))
+  return(parent.genes)
+}
+
 selectGenes <- function(genes, arrays){
   genes.sel <- which(rownames(arrays) %in% genes)
   genes.expr <- t(arrays[genes.sel,])
@@ -41,7 +47,7 @@ calc.Hotelling <- function(mod.expr, grouping){
   return(result)
 }
 
-module.Hotelling <- function(modIDs, modules, arrays, grouping, shrink=F){
+module.Hotelling <- function(modIDs, modules, parents, arrays, grouping, shrink=F){
   results <- data.frame(moduleID=vector(mode="character"),
                         p=vector(mode="numeric"),
                         T_stat=vector(mode="numeric"),
@@ -82,6 +88,7 @@ module.Hotelling.formula <- function(modIDs, modules, arrays, grouping,
   for (mod in modIDs){
     #Get the subset of the expression data for the module
     mod.genes <- get_module(mod, modules)
+    mod.genes <- c(mod.genes, get_parents(mod))
     mod.expr <- as.data.frame(selectGenes(mod.genes, arrays))
     
     #Create group vector of {1,2}
@@ -127,6 +134,9 @@ setwd("~/Dropbox/thesis_work/")
 #Filter out the modules with no probabilities
 modules <- read.table("PMN_output/4.17.30_mods_members.txt",
                           head=T, sep="\t")
+
+parents <- read.table("PMN_output/4.17.30_mods_parsed.txt",
+                      head=T, sep="\t")
 
 modules.stats <- read.table("PMN_output/4.17_30mods_genes_pathsizes.txt",
                             head=T, sep="\t")
