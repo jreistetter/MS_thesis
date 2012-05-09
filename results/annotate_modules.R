@@ -31,6 +31,13 @@ get_parents <- function(df){
 }
 #Load data
 setwd("~/Dropbox/thesis_work/")
+
+
+##############################
+#
+#   Annotate the modules
+#
+##############################
     
 modules.raw <- read.table("PMN_output/4.17.30_mods_members.txt",
       head=T, sep="\t")
@@ -42,7 +49,6 @@ module_members <- modules.raw[modules.raw$moduleID%in% good.modules$moduleID,]
 module_members$parent <- FALSE
 
 #Extract parents and make a new DF with parents included.
-
 parents.raw <- read.table("PMN_output/4.17.30_mods_parsed.txt",
                           head=T, sep="\t", stringsAsFactors=F)
 
@@ -52,11 +58,19 @@ parents$parent <- TRUE
 
 modules <- rbind(module_members, parents)
 
-#annotate data frame to gene names
-
-
 bac <- useMart('bacteria_mart_13', dataset='myc_30_gene')
 
-gene.ids.1 <- getBM(attributes=c("tuberculist", "external_gene_id"), 
-                    filters="external_gene_id", 
-                    values=unique(gene.names.1), mart=bac)
+gene.ids <- getBM(attributes=c("tuberculist", "external_gene_id"), 
+                    filters="tuberculist", 
+                    values=modules$gene, mart=bac)
+
+gene.ids$tuberculist <- toupper(gene.ids$tuberculist)
+modules.annotated <- merge(modules, gene.ids, by.x="gene", by.y="tuberculist", all.x=T)[,c(2:4)]
+colnames(modules.annotated) <- c("module", "parent", "gene")
+
+modules.annotated <- modules.annotated[with(modules.annotated, order(module, -parent)),]
+
+write.table(modules.annotated, "data/results/modules_annotated.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
+
+
