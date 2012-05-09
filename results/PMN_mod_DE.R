@@ -92,13 +92,27 @@ module.Hotelling.formula <- function(modIDs, modules, arrays, grouping,
     mod.expr.groups <- cbind(groups, mod.expr)
     
     #Run the test and store the results
-    mod.p <- hotelling.test(.~groups, data=mod.expr.groups, shrinkage=shrink, 
+    mod.out <- hotelling.test(.~groups, data=mod.expr.groups, shrinkage=shrink, 
                             perm=perm, B=10000)
     results <- rbind(results, c(mod, mod.out$pval, mod.out$stats$statistic, 
                                 mod.out$stats$nx, mod.out$stats$p))
   }
-  
+  colnames(results) <- c("moduleID", "p", "T_stat", "n_samp", "n_vars")
   return(results)
+}
+
+#Function to do the immune cells against each other at each timepoint
+immune.time.DE <- function(samples, arrays, good.modules, modules, time){
+  #Macs vs DCs at 18h
+  samp.sel <- samples[(samples$celltype != "Aerobic" & samples$time==time),]
+  expr <- arrays[,colnames(arrays)%in%samp.sel$filename]
+
+  pvals <- module.Hotelling.formula(good.modules, modules, 
+                                               expr, samp.sel$celltype,
+                                               shrink=T)
+  
+  pvals$p.adj <- p.adjust(pvals$p, method="BH")
+  return(pvals)
 }
 
 library(ICSNP)
@@ -116,7 +130,6 @@ modules <- read.table("PMN_output/4.17.30_mods_members.txt",
 
 modules.stats <- read.table("PMN_output/4.17_30mods_genes_pathsizes.txt",
                             head=T, sep="\t")
-
 
 #Arrays
 load("data/exprs/EBUGS58/EBUGS58.arrays.RData")
@@ -141,70 +154,12 @@ dim(expr.immune)
 #[1] 3765   36, 36 total arrays
 
 
-##ICSNP function
-icsnp.p <- module.ICSNP(good.modules, modules, expr.immune, celltype)
-#Throws error because of singular covariance matrix:
-#Error in solve.default(S.pooled) : 
-#  system is computationally singular: reciprocal condition number = 3.34324e-20
-
-small.mods <- c("mod15", "mod16")
-icsnp.p <- module.ICSNP(small.mods, modules, expr.immune, celltype)
-#Works:
-# mod15       mod16 
-# 0.001314223 0.145787981 
-
-#Hotelling function with S3 method
-dc_mac.p <- module.Hotelling(good.modules, modules, expr.immune, celltype)
-# Error in solve.default(sPooled) : 
-#   system is computationally singular: reciprocal condition number = 0
-
-dc_map.p.s3.shrink <- module.Hotelling(good.modules, modules, 
-                                                   expr.immune, celltype,
-                                                   shrink=T)
-#Throws error:
-# Error in if (denominator == 0) lambda.var = 1 else lambda.var = min(1,  : 
-#   missing value where TRUE/FALSE needed
-
-#Try using formula instead:
-dc_mac.p <- module.Hotelling.formula(good.modules, modules, expr.immune, 
-                                celltype, shrink=F)
-# Fails correctly:
-# Error in hotelling.stat(x, y, shrinkage) : 
-#   The sample sizes (nx + ny) must be 1 greater than the number of columns
-
-#Try the small modules that should work with classic Hotellings T2
-dc_mac.p <- module.Hotelling.formula(small.mods, modules, expr.immune, 
-                                        celltype, shrink=F)
-#Matches ICSNP:
-# mod15       mod16 
-# 0.001314223 0.145787981 
-
-#Run with no permutations
-dc_mac.p.shrink <- module.Hotelling.formula(good.modules, modules, expr.immune, 
-                                            celltype, shrink=T, perm=F)
-
-#Gives warning because df2 is a negative number because m < p
-#and df2 in Hotellings is m - p + 1
-#10 warnings in all like this:
-#Warning messages:
-# 1: In pf(q, df1, df2, lower.tail, log.p) : NaNs produced
 
 dc_mac.p.shrink.perm <- module.Hotelling.formula(good.modules, modules, expr.immune, 
                                 celltype, shrink=T)
-#Seems to work:
-# mod12 mod15 mod16 mod18 mod19  mod2 mod20 mod21 mod23 mod25 mod27 mod28  mod4  mod5  mod8 
-# 0.000 0.002 0.068 0.000 0.042 0.000 0.003 0.007 0.000 0.000 0.125 0.000 0.000 0.000 0.023
-
-sum(dc_mac.p.shrink.perm==0)
-#8, so not all 10 warnings produced 0 permutation p-values
-
-dc_mac.p.shrink.adj <- p.adjust(dc_mac.p.shrink, method="BH")
-
-
-#Although for example mod16 has a much lower p-value with shrinkage and permutation
-#testing than the parametric test: 0.146 (parametric) vs 0.068
-#mod15 on the other hand goes from 0.0013 (parametric) to 0.002
-
+dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
+write.table(dc_mac.p.shrink.perm, "data/results/DC_vs_Mac_DE.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
 
 #### 
 #
@@ -212,7 +167,7 @@ dc_mac.p.shrink.adj <- p.adjust(dc_mac.p.shrink, method="BH")
 #
 ####
 
-# 1h vs 18h
+# 1h vs 18h, Immune cells
 time.1.18 <- BUGS58.samples[BUGS58.samples$celltype != "Aerobic" & BUGS58.samples$time %in% c("1h", "18h"),]
 expr.time.1.18 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%time.1.18$filename]
 dim(expr.time.1.18)
@@ -221,28 +176,56 @@ dim(expr.time.1.18)
 time.1.18.pvals <- module.Hotelling.formula(good.modules, modules, 
                                             expr.time.1.18, time.1.18$time,
                                             shrink=T)
-time.1.18.pvals.adj <- p.adjust(time.1.18.pvals, method="BH")
+time.1.18.pvals$p.adj <- p.adjust(time.1.18.pvals$p, method="BH")
+write.table(time.1.18.pvals, "data/results/Immunes_1h_vs_18h.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
 
-#Try the non-shrinkage version
-time.1.18.Hotelling <- module.Hotelling.formula(small.mods, modules, 
-                                            expr.time.1.18, time.1.18$time,
-                                            shrink=F, perm=F)
-#Very small p:
-# mod15        mod16 
-# 3.932020e-04 5.245876e-05 
+#Macs vs DCs at 18h
+dc_mac_18h <- BUGS58.samples[(BUGS58.samples$celltype != "Aerobic" & BUGS58.samples$time =="18h"),]
+expr.dc_mac_18h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_18h$filename]
+dim(expr.dc_mac_18h)
+#[1] 3765   12
 
-#Double check with ICSNP
-time.1.18.ICSNP <- module.ICSNP(small.mods, modules, 
-                                            expr.time.1.18, time.1.18$time)
-#Very low pvalues:
-# mod15        mod16 
-# 3.932020e-04 5.245876e-05 
+dc_mac_18h.pvals <- module.Hotelling.formula(good.modules, modules, 
+                                            expr.dc_mac_18h, dc_mac_18h$celltype,
+                                            shrink=T)
+dc_mac_18h.pvals$p.adj <- p.adjust(dc_mac_18h.pvals$p, method="BH")
+
+write.table(dc_mac_18h.pvals, "data/results/DC_vs_macs_18h.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
+
+#Macs vs DCs at 4h
+dc_mac_4h <- BUGS58.samples[(BUGS58.samples$celltype != "Aerobic" & BUGS58.samples$time =="4h"),]
+expr.dc_mac_4h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_4h$filename]
+dim(expr.dc_mac_4h)
+#[1] 3765   12
+
+dc_mac_4h.pvals <- module.Hotelling.formula(good.modules, modules, 
+                                            expr.dc_mac_4h, dc_mac_4h$celltype,
+                                            shrink=T)
+dc_mac_4h.pvals$p.adj <- p.adjust(dc_mac_4h.pvals$p, method="BH")
+
+write.table(dc_mac_4h.pvals, "data/results/DC_vs_macs_4h.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
+
+
+
+dc_mac_4h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+                                  modules, "4h")
+
+write.table(dc_mac_4h.pvals, "data/results/DC_vs_macs_4h.txt",
+            col.names=T, sep="\t", quote=F, row.names=F)
+
+dc_mac_1h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+                                  modules, "1h")
 
 #### 
 #
 #    MACS
 #
 ####
+
+snp.alleles <- data.frame(snpID=allSNPIDs)
 
 #Macs vs Aerobic
 mac.aer.arr <- BUGS58.samples[BUGS58.samples$celltype != "DC",1]
@@ -254,10 +237,7 @@ dim(expr.mac.aer)
 mac.aer.pvals <- module.Hotelling.formula(good.modules, modules, 
                                           expr.mac.aer, mac.aer.labels,
                                           shrink=T)
-# mod12 mod15 mod16 mod18 mod19  mod2 mod20 mod21 mod23 mod25 mod27 mod28  mod4  mod5  mod8 
-# 0.000 0.000 0.004 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 
-
-mac.aer.pvals.adj <- p.adjust(mac.aer.pvals, method="BH")
+mac.aer.pvals$p.adj <- p.adjust(mac.aer.pvals, method="BH")
 
 
 #Macs 0h vs 4h
