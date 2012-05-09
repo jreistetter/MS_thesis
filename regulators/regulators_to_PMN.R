@@ -55,6 +55,16 @@ g.51716.rv <- parse_GO("GO_0051716.txt")
 g.5576.rv <- parse_GO("GO_0005576.txt")
 g.44425.rv <- parse_GO("GO_0044425.txt")
 
+length(g.42221.rv) +
+  length(g.44425.rv) + 
+  length(g.51716.rv) + 
+  length(g.5576.rv) + 
+  length(g.6950.rv) + 
+  length(g.6955.rv) + 
+  length(g.9607.rv)
+
+# [1] 951 total genes vs 622 unique (see below)
+
 #Write out the regulators for two smaller GO categories
 write.table(toupper(g.6950.rv), file="go_stress.regulators",
             quote=F, row.names=F, col.names=F)
@@ -71,7 +81,7 @@ go.rv <- unique(c(g.42221.rv, g.44425.rv, g.51716.rv,
 go.rv <- go.rv[!is.na(go.rv)]
 
 length(go.rv)
-#[1] 622
+#[1] 622 unique
 
 length(c(g.42221.rv, g.44425.rv, g.51716.rv,
          g.5576.rv, g.6950.rv, g.6955.rv,
