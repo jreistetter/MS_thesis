@@ -75,6 +75,8 @@ length(intersect(hybrid.genes, string.filtered.genes))
 #[1] 1203
 
 string.700 <- string[string$conf >= 700, c(1,2)]
+nrow(string.700)
+#[1] 37094
 string.700.genes <- unique(c(string.700$string1, string.700$string2))
 length(string.700.genes)
 #[1] 3301
