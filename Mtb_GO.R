@@ -135,6 +135,19 @@ for (gene in my.universe){
 }
 close(goeast)
 
+#Create list of GO terms mapped to each gene
+#for GOSTAT
+gostat <- file("GOstat.annot.txt", "w")
+
+for (gene in my.universe){
+  gene.GO <- go.mtb.mappings[go.mtb.mappings$gene_id==gene,1]
+  go.format <- paste(gene.GO, collapse=";")
+  line <- paste(gene, go.format, sep="\t")
+  write(line, gostat, append=T)
+  
+}
+close(gostat)
+
 # Write out all the modules
 mods_GOEAST(mod_members.good, mod_parents)
 
