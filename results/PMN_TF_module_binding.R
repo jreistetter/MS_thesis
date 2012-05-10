@@ -5,6 +5,54 @@
 
 options(stringsAsFactors=F)
 
+#Functions
+get_module <- function(modID, modules){
+  return(modules[modules$moduleID==modID,2])
+}
+
+parse_pathways <- function(path.raw){
+  pathways <- list()
+  
+  for (i in c(1:nrow(path.raw))){
+    modID <- path.raw[i,1]
+    pathway <- unlist(strsplit(path.raw[i,2], "\t", fixed=T))
+    #Each parent has its own pathway, append the parent to the ID
+    modID <- paste(c(modID, "_", pathway[1]), collapse="")
+    pathways[[modID]] <- pathway
+    
+  }
+  
+  return(pathways)
+}
+
+tf_binding <- function(tf, module, pDNA){
+  tf.targets <- pDNA[pDNA$tf==tf,2]
+  mod.bound <- sum(module%in%tf.targets)
+  return(mod.bound)
+}
+
+calc_tf <- function(pathways, modules, pDNA){
+  
+  tf.stats <- data.frame(modID=c(), parent=c(), tf=c(), 
+                         n_bound=c(), perc_bound=c())
+  for (pathID in names(pathways)){
+    parsed <- unlist(strsplit(pathID, "_", fixed=T))
+    modID <- parsed[1]
+    parent <- parsed[2]
+    
+    pathway <- pathways[[pathID]]
+    tf <- pathway[length(pathway)]
+    
+    module <- get_module(modID, modules)
+    n_bound <- tf_binding(tf, module, pDNA)
+    perc_bound <- n_bound / length(module)
+    
+    tf.stats <- rbind(tf.stats, c(modID, parent, tf, n_bound, perc_bound))
+  }
+  colnames(tf.stats) <- c("moduleID", "parent", "tf", "n_bound", "perc_bound")
+  return(tf.stats)
+}
+
 setwd("~/Dropbox/thesis_work/")
 
 #########################
@@ -39,23 +87,10 @@ path.raw <- read.table("PMN_output/4.17.30_mods_pathways_for_annotation.txt",
 
 path.raw <- path.raw[path.raw[,1] %in% good.modules,]
 
-pathways <- list()
+pathways <- parse_pathways(path.raw)
 
-for (i in c(1:nrow(path.raw))){
-  modID <- path.raw[i,1]
-  pathway <- unlist(strsplit(path.raw[i,2], "\t", fixed=T))
-  #Each parent has its own pathway, append the parent to the ID
-  modID <- paste(c(modID, "_", pathway[1]), collapse="")
-  pathways[[modID]] <- pathway
-  
-}
+tf.stats <- calc_tf(pathways, modules, tfs)
 
-
-tf_binding <- function(tf, module, pDNA){
-  tf.targets <- pDNA[pDNA$tf==tf,2]
-  mod.bound <- sum(module%in%tf.targets)
-  return(mod.bound)
-}
-
-
+write.table(tf.stats, "data/results/PMN_TF_module_binding.txt",
+            row.names=F, col.names=T, quote=F, sep="\t")
 
