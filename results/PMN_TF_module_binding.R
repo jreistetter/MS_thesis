@@ -51,4 +51,11 @@ for (i in c(1:nrow(path.raw))){
 }
 
 
+tf_binding <- function(tf, module, pDNA){
+  tf.targets <- pDNA[pDNA$tf==tf,2]
+  mod.bound <- sum(module%in%tf.targets)
+  return(mod.bound)
+}
+
+
 
