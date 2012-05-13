@@ -90,7 +90,56 @@ heat_labels <- function(arrayIDs, samples){
   return(array.info$labels)
 }
 
-library(ICSNP)
+mod.heat <- function(mod.genes, expr, samples, title){
+  # mod.genes - char vector of genes for heatmap
+  # expr - all expression data
+  mod.expr <- selectGenes(mod.genes, expr)
+  #mod.expr <- mod.expr[complete.cases(mod.expr),]
+  mod.expr.t <- t(mod.expr)
+  colnames(mod.expr.t) <- heat_labels(rownames(mod.expr), samples)
+  #Set colors for DCs and pass to function.
+  cell.type <- grepl("DC", colnames(mod.expr.t), fixed=T)
+  col.side <- rep("seagreen", length(cell.type))
+  col.side[cell.type] <- "skyblue"
+  print(col.side)
+  heatmap.2(mod.expr.t,
+            cexRow = 0.5,
+            cexCol = 0.5,
+            na.rm=T, 
+            trace="none",
+            symkey=T,
+            col=redgreen,
+            key=TRUE,
+            ColSideColors=col.side)
+}
+
+mod.heat.time <- function(mod.genes, expr, samples, title){
+  # mod.genes - char vector of genes for heatmap
+  # expr - all expression data
+  mod.expr <- selectGenes(mod.genes, expr)
+  #mod.expr <- mod.expr[complete.cases(mod.expr),]
+  mod.expr.t <- t(mod.expr)
+  colnames(mod.expr.t) <- heat_labels(rownames(mod.expr), samples)
+  print(colnames(mod.expr.t))
+  #Set colors for DCs and pass to function.
+  time.4h <- grepl("4h", colnames(mod.expr.t), fixed=T)
+  time.18h <- grepl("18h", colnames(mod.expr.t), fixed=T)
+  col.side <- rep("orange", length(time.4h))
+  col.side[time.4h] <- "purple"
+  col.side[time.18h] <- "red"
+  print(col.side)
+  heatmap.2(mod.expr.t,
+            cexRow = 0.5,
+            cexCol = 0.5,
+            na.rm=T, 
+            trace="none",
+            symkey=T,
+            col=redgreen,
+            key=TRUE,
+            ColSideColors=col.side)
+}
+
+library(gplots)
 library(Hotelling)
 
 setwd("~/Dropbox/thesis_work/")
@@ -137,22 +186,19 @@ dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
 write.table(dc_mac.p.shrink.perm, "data/results/PMN_DC_vs_Mac_DE.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-mod.heat <- function(mod.genes, expr, samples){
-  # mod.genes - char vector of genes for heatmap
-  # expr - all expression data
-  mod.expr <- selectGenes(mod.genes, expr)
-  mod.expr.t <- t(mod.expr)
-  colnames(mod.expr.t) <- heat_labels(rownames(mod.expr), samples)
-  heatmap.2(mod.expr.t,
-            cexRow = 0.5,
-            cexCol = 0.5,
-            na.rm=T, 
-            trace="none")
-}
+
+
 
 
 mod2 <- get_module("mod2", modules)
 mod.heat(mod2, expr.immune, BUGS58.samples)
+## DCs = blue, Macs = green
+mod.heat.time(mod2, expr.immune, BUGS58.samples)
+## 1h = orange, 4h = purple, 18h = red
+
+
+
+
 colnames(e.t) <- heat_labels(colnames(expr.immune), BUGS58.samples)
 heatmap.2(e.t)
 
