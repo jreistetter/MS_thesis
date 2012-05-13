@@ -1,5 +1,5 @@
 # Script to perform Hotellings T2 on module members between aerobic, DC, and Mac Mtbs
-# 
+# and make heatmaps of module expression
 
 
 options(stringsAsFactors=F)
@@ -73,6 +73,23 @@ immune.time.DE <- function(samples, arrays, good.modules, modules, parents, time
   return(pvals)
 }
 
+heat_labels <- function(arrayIDs, samples){
+  # arrayIDs - char vector of filenames of arrays
+  # samples - dataframe of the sample metadata
+  
+  array.info <- samples[samples$filename %in% arrayIDs,]
+  array.info$labels <- unlist(apply(array.info, 1, function(array){
+    label <- paste(c(array[2],
+                     array[3],
+                     array[4]),
+                   collapse=" - "
+                   )
+    return(label)
+  }
+                                    ))
+  return(array.info$labels)
+}
+
 library(ICSNP)
 library(Hotelling)
 
@@ -119,6 +136,27 @@ dc_mac.p.shrink.perm <- module.Hotelling(good.modules, modules, parents, expr.im
 dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
 write.table(dc_mac.p.shrink.perm, "data/results/PMN_DC_vs_Mac_DE.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
+
+mod.heat <- function(mod.genes, expr, samples){
+  # mod.genes - char vector of genes for heatmap
+  # expr - all expression data
+  mod.expr <- selectGenes(mod.genes, expr)
+  mod.expr.t <- t(mod.expr)
+  colnames(mod.expr.t) <- heat_labels(rownames(mod.expr), samples)
+  heatmap.2(mod.expr.t,
+            cexRow = 0.5,
+            cexCol = 0.5,
+            na.rm=T, 
+            trace="none")
+}
+
+
+mod2 <- get_module("mod2", modules)
+mod.heat(mod2, expr.immune, BUGS58.samples)
+colnames(e.t) <- heat_labels(colnames(expr.immune), BUGS58.samples)
+heatmap.2(e.t)
+
+
 
 #### 
 #
