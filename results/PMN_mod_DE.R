@@ -139,6 +139,13 @@ mod.heat.time <- function(mod.genes, expr, samples, title){
             ColSideColors=col.side)
 }
 
+get_arrays_time <- function(samples, expr, time){
+  arrays.idx <- which(samples$time == time & samples$celltype!="Aerobic")
+  array.ids <- samples[arrays.idx,]$filename
+  expr.time <- expr[,colnames(expr)%in%array.ids]
+  return(expr.time)
+}
+
 library(gplots)
 library(Hotelling)
 
@@ -186,9 +193,15 @@ dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
 write.table(dc_mac.p.shrink.perm, "data/results/PMN_DC_vs_Mac_DE.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
+#########################
+#
+#   Heatmaps of Expression
+#
+#########################
 
 
-
+##
+#   DCs vs Macs all times
 
 mod2 <- get_module("mod2", modules)
 mod.heat(mod2, expr.immune, BUGS58.samples)
@@ -196,11 +209,9 @@ mod.heat(mod2, expr.immune, BUGS58.samples)
 mod.heat.time(mod2, expr.immune, BUGS58.samples)
 ## 1h = orange, 4h = purple, 18h = red
 
+arrays.1h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "1h")
+expr.1h <- expr
 
-
-
-colnames(e.t) <- heat_labels(colnames(expr.immune), BUGS58.samples)
-heatmap.2(e.t)
 
 
 
