@@ -101,7 +101,6 @@ mod.heat <- function(mod.genes, expr, samples, title){
   cell.type <- grepl("DC", colnames(mod.expr.t), fixed=T)
   col.side <- rep("seagreen", length(cell.type))
   col.side[cell.type] <- "skyblue"
-  print(col.side)
   heatmap.2(mod.expr.t,
             cexRow = 0.5,
             cexCol = 0.5,
@@ -120,14 +119,12 @@ mod.heat.time <- function(mod.genes, expr, samples, title){
   #mod.expr <- mod.expr[complete.cases(mod.expr),]
   mod.expr.t <- t(mod.expr)
   colnames(mod.expr.t) <- heat_labels(rownames(mod.expr), samples)
-  print(colnames(mod.expr.t))
   #Set colors for DCs and pass to function.
   time.4h <- grepl("4h", colnames(mod.expr.t), fixed=T)
   time.18h <- grepl("18h", colnames(mod.expr.t), fixed=T)
   col.side <- rep("orange", length(time.4h))
   col.side[time.4h] <- "purple"
   col.side[time.18h] <- "red"
-  print(col.side)
   heatmap.2(mod.expr.t,
             cexRow = 0.5,
             cexCol = 0.5,
@@ -209,10 +206,17 @@ mod.heat(mod2, expr.immune, BUGS58.samples)
 mod.heat.time(mod2, expr.immune, BUGS58.samples)
 ## 1h = orange, 4h = purple, 18h = red
 
+# 1 hour
 arrays.1h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "1h")
-expr.1h <- expr
+mod.heat(mod2, arrays.1h, BUGS58.samples)
 
+# 4 hours
+arrays.4h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "4h")
+mod.heat(mod2, arrays.4h, BUGS58.samples)
 
+# 18 hours
+arrays.18h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "18h")
+mod.heat(mod2, arrays.18h, BUGS58.samples)
 
 
 #### 
