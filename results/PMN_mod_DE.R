@@ -90,7 +90,7 @@ heat_labels <- function(arrayIDs, samples){
   return(array.info$labels)
 }
 
-mod.heat <- function(mod.genes, expr, samples, title){
+mod.heat <- function(mod.genes, expr, samples, title, labSize=0.5){
   # mod.genes - char vector of genes for heatmap
   # expr - all expression data
   mod.expr <- selectGenes(mod.genes, expr)
@@ -102,8 +102,8 @@ mod.heat <- function(mod.genes, expr, samples, title){
   col.side <- rep("seagreen", length(cell.type))
   col.side[cell.type] <- "skyblue"
   heatmap.2(mod.expr.t,
-            cexRow = 0.5,
-            cexCol = 0.5,
+            cexRow = labSize,
+            cexCol = labSize,
             na.rm=T, 
             trace="none",
             symkey=T,
@@ -201,6 +201,7 @@ write.table(dc_mac.p.shrink.perm, "data/results/PMN_DC_vs_Mac_DE.txt",
 #   DCs vs Macs all times
 
 mod2 <- get_module("mod2", modules)
+mod2 <- c(mod2, get_parents("mod2", parents))
 mod.heat(mod2, expr.immune, BUGS58.samples)
 ## DCs = blue, Macs = green
 mod.heat.time(mod2, expr.immune, BUGS58.samples)
@@ -215,9 +216,11 @@ arrays.4h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "4h")
 mod.heat(mod2, arrays.4h, BUGS58.samples)
 
 # 18 hours
+png("data/results/PMN_DE_heat/PMN_DC_v_Mac_18h.png", 
+    1000, 881, pointsize=14, bg="transparent")
 arrays.18h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "18h")
-mod.heat(mod2, arrays.18h, BUGS58.samples)
-
+mod.heat(mod2, arrays.18h, BUGS58.samples, labSize=1)
+dev.off()
 
 #### 
 #
