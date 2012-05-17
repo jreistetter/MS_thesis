@@ -29,11 +29,12 @@ calc.Hotelling <- function(mod.expr, grouping){
 
 
 module.Hotelling <- function(modIDs, modules, parents, arrays, grouping, 
-                                     shrink=F, perm=T){
+                                     shrink=F, perm=T, filterNA=F){
   results <- data.frame(moduleID=vector(mode="character"),
                         p=vector(mode="numeric"),
                         T_stat=vector(mode="numeric"),
-                        n_samp=vector(mode="integer"),
+                        n_x=vector(mode="integer"),
+                        n_y=vector(mode="integer"),
                         n_vars=vector(mode="integer"))
   
   for (mod in modIDs){
@@ -41,6 +42,10 @@ module.Hotelling <- function(modIDs, modules, parents, arrays, grouping,
     mod.genes <- get_module(mod, modules)
     mod.genes <- c(mod.genes, get_parents(mod, parents))
     mod.expr <- as.data.frame(selectGenes(mod.genes, arrays))
+    
+    if(filterNA == T){
+      mod.expr <- remove_na_cols(mod.expr)
+    }
     
     #Create group vector of {1,2}
     groups <- rep(1, length(grouping))
@@ -53,21 +58,29 @@ module.Hotelling <- function(modIDs, modules, parents, arrays, grouping,
     mod.out <- hotelling.test(.~groups, data=mod.expr.groups, shrinkage=shrink, 
                             perm=perm, B=10000)
     results <- rbind(results, c(mod, mod.out$pval, mod.out$stats$statistic, 
-                                mod.out$stats$nx, mod.out$stats$p))
+                                mod.out$stats$nx, mod.out$stats$ny, mod.out$stats$p))
   }
-  colnames(results) <- c("moduleID", "p", "T_stat", "n_samp", "n_vars")
+  colnames(results) <- c("moduleID", "p", "T_stat", "n_x", "n_y", "n_vars")
   return(results)
 }
 
+remove_na_cols <- function(df){
+  cols.nas <- unlist(apply(df, 1, function(x) which(is.na(x))))
+  if(length(cols.nas)==0){
+    return(df)
+  }
+  df.clean <- df[,-unique(cols.nas)]
+  return(df.clean)
+}
 #Function to do the immune cells against each other at each timepoint
-immune.time.DE <- function(samples, arrays, good.modules, modules, parents, time){
+immune.time.DE <- function(samples, arrays, good.modules, modules, parents, time, filterNA=F){
   #Macs vs DCs at 18h
   samp.sel <- samples[(samples$celltype != "Aerobic" & samples$time==time),]
   expr <- arrays[,colnames(arrays)%in%samp.sel$filename]
 
   pvals <- module.Hotelling(good.modules, modules, parents,
                                                expr, samp.sel$celltype,
-                                               shrink=T)
+                                               shrink=T, filterNA=filterNA)
   
   pvals$p.adj <- p.adjust(pvals$p, method="BH")
   return(pvals)
@@ -241,42 +254,25 @@ time.1.18.pvals$p.adj <- p.adjust(time.1.18.pvals$p, method="BH")
 write.table(time.1.18.pvals, "data/results/PMN_immunes_1h_vs_18h.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-#Macs vs DCs at 18h
-dc_mac_18h <- BUGS58.samples[(BUGS58.samples$celltype != "Aerobic" & BUGS58.samples$time =="18h"),]
-expr.dc_mac_18h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_18h$filename]
-dim(expr.dc_mac_18h)
-#[1] 3765   12
+#Macs vs DCs at 1h, 4h, 18h with NAs removed
+dc_mac_18h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules, 
+                                   modules, parents, "18h", filterNA=T)
 
-dc_mac_18h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules, 
-                                   modules, parents, "18h")
-
-write.table(dc_mac_18h.pvals, "data/results/PMN_DC_vs_macs_18h.txt",
+write.table(dc_mac_18h.pvals.noNA, "data/results/PMN_DC_vs_macs_18h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-dc_mac_4h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
-                                  modules, parents, "4h")
+dc_mac_4h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+                                  modules, parents, "4h", filterNA=T)
 
-write.table(dc_mac_4h.pvals, "data/results/PMN_DC_vs_macs_4h.txt",
+write.table(dc_mac_4h.pvals.noNA, "data/results/PMN_DC_vs_macs_4h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-dc_mac_1h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
-                                  modules, parents, "1h")
+dc_mac_1h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+                                  modules, parents, "1h", filterNA=T)
 
-mods.1h <- good.modules[-which(good.modules %in% c("mod18"))]
-
-dc_mac_1h.pvals <- immune.time.DE(BUGS58.samples, BUGS58.arrays, mods.1h,
-                                  modules, parents, "1h")
-
-write.table(dc_mac_1h.pvals, "data/results/PMN_DC_vs_macs_1h.txt",
+write.table(dc_mac_1h.pvals.noNA, "data/results/PMN_DC_vs_macs_1h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-
-#Merge into one big DF
-colnames(dc_mac_1h.pvals)[6] <- "p.1h"
-colnames(dc_mac_4h.pvals)[6] <- "p.4h"
-colnames(dc_mac_18h.pvals)[6] <- "p.18h"
-
-dc_mac_time_p <- merge(dc_mac_1h.pvals, dc_mac_4h.pvals)
 
 #### 
 #
@@ -301,17 +297,14 @@ write.table(mac.aer.pvals, "data/results/PMN_Macs_vs_Aerobic.txt",
 
 
 #Macs 1h vs 4h
-mods.1.4 <- good.modules[-which(good.modules %in% c("mod18"))]
-
-
 mac.1.4 <- BUGS58.samples[BUGS58.samples$celltype == "MDM" & BUGS58.samples$time %in% c("1h", "4h"),]
 expr.mac.1.4 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.1.4$filename]
 dim(expr.mac.1.4)
 #[1] 3765   12, 12 arrays
 
-mac.1.4.pvals <- module.Hotelling(mods.1.4, modules, parents,
+mac.1.4.pvals <- module.Hotelling(good.modules, modules, parents,
                                           expr.mac.1.4, mac.1.4$time,
-                                          shrink=T)
+                                          shrink=T, filterNA=T)
 
 mac.1.4.pvals$p.adj <- p.adjust(mac.1.4.pvals$p, method="BH")
 
@@ -324,9 +317,9 @@ expr.mac.4.18 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.4.18$filename]
 dim(expr.mac.4.18)
 #[1] 3765   12, 12 arrays
 
-mac.4.18.pvals <- module.Hotelling(mods.1.4, modules, parents,
+mac.4.18.pvals <- module.Hotelling(good.modules, modules, parents,
                                    expr.mac.4.18, mac.4.18$time,
-                                   shrink=T)
+                                   shrink=T, filterNA=T)
 
 mac.4.18.pvals$p.adj <- p.adjust(mac.4.18.pvals$p, method="BH")
 
@@ -339,9 +332,9 @@ expr.mac.1.18 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%mac.1.18$filename]
 dim(expr.mac.1.18)
 #[1] 3765   12, 12 arrays
 
-mac.1.18.pvals <- module.Hotelling(mods.1.4, modules, parents,
+mac.1.18.pvals <- module.Hotelling(good.modules, modules, parents,
                                            expr.mac.1.18, mac.1.18$time,
-                                           shrink=T)
+                                           shrink=T, filterNA=T)
 
 mac.1.18.pvals$p.adj <- p.adjust(mac.1.18.pvals$p, method="BH")
 
@@ -362,7 +355,7 @@ dim(expr.DC.aer)
 
 DC.aer.pvals <- module.Hotelling(good.modules, modules, parents,
                                  expr.DC.aer, DC.aer.labels,
-                                 shrink=T)
+                                 shrink=T, filterNA=T)
 
 DC.aer.pvals$adj <- p.adjust(DC.aer.pvals$p, method="BH")
 
@@ -370,9 +363,6 @@ write.table(DC.aer.pvals,"data/results/PMN_DCs_vs_Aerobic.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
 #DCs 1h vs 4h
-mods.1.4 <- good.modules[-which(good.modules %in% c("mod18"))]
-
-
 DC.1.4 <- BUGS58.samples[BUGS58.samples$celltype == "DC" & BUGS58.samples$time %in% c("1h", "4h"),]
 expr.DC.1.4 <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%DC.1.4$filename]
 dim(expr.DC.1.4)
@@ -380,7 +370,7 @@ dim(expr.DC.1.4)
 
 DC.1.4.pvals <- module.Hotelling(good.modules, modules, parents,
                                   expr.DC.1.4, DC.1.4$time,
-                                  shrink=T)
+                                  shrink=T, filterNA=T)
 
 DC.1.4.pvals$p.adj <- p.adjust(DC.1.4.pvals$p, method="BH")
 
@@ -396,7 +386,7 @@ dim(expr.DC.4.18)
 
 DC.4.18.pvals <- module.Hotelling(good.modules, modules, parents,
                                  expr.DC.4.18, DC.4.18$time,
-                                 shrink=T)
+                                 shrink=T, filterNA=T)
 
 DC.4.18.pvals$p.adj <- p.adjust(DC.4.18.pvals$p, method="BH")
 
@@ -411,36 +401,10 @@ dim(expr.DC.1.18)
 
 DC.1.18.pvals <- module.Hotelling(good.modules, modules, parents,
                                   expr.DC.1.18, DC.1.18$time,
-                                  shrink=T)
+                                  shrink=T, filterNA=T)
 
 DC.1.18.pvals$p.adj <- p.adjust(DC.1.18.pvals$p, method="BH")
 
 write.table(DC.1.18.pvals,"data/results/PMN_DCs_1h_vs_18h.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-
-
-
-
-#Old code
-dc_mac_18h.pvals$p.adj <- p.adjust(dc_mac_18h.pvals$p, method="BH")
-
-write.table(dc_mac_18h.pvals, "data/results/DC_vs_macs_18h.txt",
-            col.names=T, sep="\t", quote=F, row.names=F)
-
-#Macs vs DCs at 4h
-dc_mac_4h <- BUGS58.samples[(BUGS58.samples$celltype != "Aerobic" & BUGS58.samples$time =="4h"),]
-expr.dc_mac_4h <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%dc_mac_4h$filename]
-dim(expr.dc_mac_4h)
-#[1] 3765   12
-
-dc_mac_4h.pvals <- module.Hotelling(good.modules, modules, parents,
-                                    expr.dc_mac_4h, dc_mac_4h$celltype,
-                                    shrink=T)
-dc_mac_4h.pvals$p.adj <- p.adjust(dc_mac_4h.pvals$p, method="BH")
-
-write.table(dc_mac_4h.pvals, "data/results/DC_vs_macs_4h.txt",
-            col.names=T, sep="\t", quote=F, row.names=F)
-
-
-                     
