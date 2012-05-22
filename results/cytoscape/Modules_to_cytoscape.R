@@ -70,8 +70,32 @@ mod_adj_to_cyto <- function(mod_adj, out_path){
   close(out.f)
 }
 
+p.mod_membership_cyto <- function(w.mod_adj, p.modules, out_path){
+ w.genes <- unique(c(w.mod_adj$gene1, w.mod_adj$gene2))
+ 
+ out.f <- file(out_path, "w")
+ write("PMN_module", out.f, append=T)
+ 
+ for (gene in w.genes){
+   if (!(gene %in% p.modules$rvID)){
+     line <- paste(c(gene, "NA"), collapse = " = ")
+     write(line, out.f, append=T)
+   }
+   else{
+     gene.mod <- p.modules[p.modules$rvID==gene & p.modules$parent==F,]$moduleID
+     line <- paste(c(gene, gene.mod), collapse = " = ")
+     write(line, out.f, append=T)
+   }
+ }
+ 
+ close(out.f) 
+}
+
 mod5.adj <- mod_adj_to_list("5", wgcna.modules, filt_pt5.net, 0)
 mod_adj_to_cyto(mod5.adj, "data/results/cytoscape/w.mod5.sif")
+p.mod_membership_cyto(mod5.adj, pmn.modules, 
+                      "data/results/cytoscape/w.mod5.pmn.noa")
+
 
 mod2 <- pmn.modules[pmn.modules$moduleID=="mod2",]$gene
 w5 <- wgcna.modules[wgcna.modules$moduleID=="5",]$gene
