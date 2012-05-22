@@ -43,6 +43,26 @@ setwd("~/Dropbox/thesis_work/")
 modules.raw <- read.table("PMN_output/4.17.30_mods_members.txt",
                           head=T, sep="\t")
 
+load("data/exprs/filt_pt5.net.RData")
+
+wgcna.genes <- filt_pt5.net@peptides
+
+all.genes <- unique(modules.raw$gene, wgcna.genes)
+
+bac <- useMart('bacteria_mart_13', dataset='myc_30_gene')
+
+gene.ids.all <- getBM(attributes=c("tuberculist", "external_gene_id"), 
+                  filters="tuberculist", 
+                  values=all.genes, mart=bac)
+
+gene.ids.all$tuberculist <- toupper(gene.ids.all$tuberculist)
+
+colnames(gene.ids.all) <- c("rvID", "name")
+
+write.table(gene.ids.all, "data/results/genes.annotated",
+            col.names=T, row.names=F, sep="\t", quote=F)
+
+
 good.modules <- read.table("data/results/PMN_good_modules.txt",
                            head=T, sep="\t")
 
@@ -60,8 +80,6 @@ parents <- get_parents(parents.raw)
 parents$parent <- TRUE
 
 modules <- rbind(module_members, parents)
-
-bac <- useMart('bacteria_mart_13', dataset='myc_30_gene')
 
 gene.ids <- getBM(attributes=c("tuberculist", "external_gene_id"), 
                     filters="tuberculist", 
