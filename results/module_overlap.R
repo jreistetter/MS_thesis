@@ -104,3 +104,13 @@ write.table(wgcna.modIDs, "results/WGCNA_good_modules.txt",
 n <- sum(pmn.modules$gene %in% wgcna.modules$gene)
 
 overlap.table <- overlap_table(pmn.modIDs, wgcna.modIDs, pmn.modules, wgcna.modules, n)
+
+write.table(overlap.table, "results/Module_overlap.txt",
+            row.names=T,
+            col.names=T,
+            quote=F,
+            sep="\t")
+
+labeledHeatmap(overlap.table,
+               xLabels=wgcna.modIDs,
+               yLabels=pmn.modIDs)

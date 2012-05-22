@@ -10,6 +10,31 @@ get_module <- function(modID, modules){
   return(modules[modules$moduleID==modID,2])
 }
 
+get_tf_weight <- function(tf, pDNA){
+  tf.weight <- pDNA[pDNA$tf==tf,]$weight[1]
+  return(tf.weight)
+}
+
+get_tf <- function(modID, modules, pDNA){
+  mod.members <- get_module(modID, modules)
+  mod.tfs <- table(pDNA[pDNA$target%in%mod.members,]$tf)
+  mod.tfs.df <- as.data.frame(mod.tfs)
+  if (nrow(mod.tfs.df)==0){
+    return(data.frame(Var1=c(NA), Freq=c(NA), modID=c(modID)))
+  }
+  mod.tfs.df$moduleID <- modID
+  return(mod.tfs.df)
+}
+
+get_module_tfs <- function(modIDs, modules, pDNA){
+  results <- get_tf(modIDs[1], modules, pDNA)
+  for (modID in modIDs[2:length(modIDs)]){
+    results <- rbind(results, get_tf(modID, modules, pDNA))
+  }
+  
+  return(results)
+}
+
 parse_pathways <- function(path.raw){
   pathways <- list()
   
@@ -46,10 +71,13 @@ calc_tf <- function(pathways, modules, pDNA){
     module <- get_module(modID, modules)
     n_bound <- tf_binding(tf, module, pDNA)
     perc_bound <- n_bound / length(module)
+    tf.weight <- get_tf_weight(tf, pDNA)
     
-    tf.stats <- rbind(tf.stats, c(modID, parent, tf, n_bound, perc_bound))
+    tf.stats <- rbind(tf.stats, c(modID, parent, tf, tf.weight, 
+                                  n_bound, perc_bound))
   }
-  colnames(tf.stats) <- c("moduleID", "parent", "tf", "n_bound", "perc_bound")
+  colnames(tf.stats) <- c("moduleID", "parent", "tf", "tf.weight",
+                          "n_bound", "perc_bound")
   return(tf.stats)
 }
 
@@ -89,7 +117,15 @@ path.raw <- path.raw[path.raw[,1] %in% good.modules,]
 
 pathways <- parse_pathways(path.raw)
 
+
+
 tf.stats <- calc_tf(pathways, modules, tfs)
+module.tfs <- get_module_tfs(good.modules, modules, tfs)
+
+#mod2 TFs
+mod2.tfs <- get_tf("mod2", modules, tfs)
+write.table(mod2.tfs, "data/results/PMN_mod2_TFs.txt",
+            col.names=T, row.names=F, quote=F, sep="\t")
 
 write.table(tf.stats, "data/results/PMN_TF_module_binding.txt",
             row.names=F, col.names=T, quote=F, sep="\t")
