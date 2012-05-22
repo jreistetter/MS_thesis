@@ -2,8 +2,9 @@
 
 #Written by Joe Reistetter
 
-options(stringsAsFactor=F)
+
 library(biomaRt)
+options(stringsAsFactors=F)
 
 get_parents <- function(df){
   modIDs <- unique(df$moduleID)
@@ -40,17 +41,19 @@ setwd("~/Dropbox/thesis_work/")
 ##############################
     
 modules.raw <- read.table("PMN_output/4.17.30_mods_members.txt",
-      head=T, sep="\t")
+                          head=T, sep="\t")
 
 good.modules <- read.table("data/results/PMN_good_modules.txt",
                            head=T, sep="\t")
+
+colnames(good.modules) <- "moduleID"
 
 module_members <- modules.raw[modules.raw$moduleID%in% good.modules$moduleID,]
 module_members$parent <- FALSE
 
 #Extract parents and make a new DF with parents included.
 parents.raw <- read.table("PMN_output/4.17.30_mods_parsed.txt",
-                          head=T, sep="\t", stringsAsFactors=F)
+                          head=T, sep="\t")
 
 parents.raw <- parents.raw[parents.raw$moduleID %in% good.modules$moduleID,]
 parents <- get_parents(parents.raw)
@@ -65,10 +68,21 @@ gene.ids <- getBM(attributes=c("tuberculist", "external_gene_id"),
                     values=modules$gene, mart=bac)
 
 gene.ids$tuberculist <- toupper(gene.ids$tuberculist)
-modules.annotated <- merge(modules, gene.ids, by.x="gene", by.y="tuberculist", all.x=T)[,c(2:4)]
-colnames(modules.annotated) <- c("module", "parent", "gene")
+modules.annotated <- merge(modules, gene.ids, 
+                           by.x="gene", 
+                           by.y="tuberculist", 
+                           all.x=T)[,c(2:4)]
 
-modules.annotated <- modules.annotated[with(modules.annotated, order(module, -parent)),]
+modules.annotated <- merge(modules, gene.ids, 
+                           by.x="gene", 
+                           by.y="tuberculist", 
+                           all.x=T)
+
+colnames(modules.annotated) <- c("rvID", "moduleID", "parent", "name")
+
+#Sort and change the column order
+modules.annotated <- modules.annotated[with(modules.annotated, order(moduleID, -parent)),]
+modules.annotated <- modules.annotated[,c(2,4,1,3)]
 
 write.table(modules.annotated, "data/results/PMN_modules_annotated.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
