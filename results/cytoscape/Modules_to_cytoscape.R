@@ -72,6 +72,40 @@ p.mod_membership_cyto <- function(w.mod_adj, p.modules, out_path){
   close(out.f) 
 }
 
+add_TFs <- function(adj_list, pDNA){
+  adj_list$interaction <- "pp"
+  tfs <- pDNA$TF
+  
+  for (i in 1:nrow(adj_list)){
+    row <- adj_list[i,]
+    
+    #Check if gene1 is TF
+    if (row$gene1 %in% tfs){
+      tf.targets <- pDNA[pDNA$TF==row$gene1,]$target
+      
+      #if TF, check if the second gene is a target.
+      #if so, set the appropriate interactions
+      if (row$gene2 %in% tf.targets){
+        adj_list[i,]$interaction <- "pd"
+      }
+    }
+    
+    #check if gene2 is TF
+    if(row$gene2 %in% tfs){
+      tf.targets <- pDNA[pDNA$TF==row$gene2,]$target
+      
+      #if TF check if second gene is target
+      #if so, switch the source and target and add interaction
+      if(row$gene1 %in% tf.targets){
+        adj_list[i,]$gene1 <- row$gene2
+        adj_list[i,]$gene2 <- row$gene1
+        adj_list[i,]$interaction <- "pd"
+      }
+    }
+  }
+  return(adj_list)
+}
+
 annotate_adj <- function(adj.df, annot.df){
   adj.df$name1 <- ""
   adj.df$name2 <- ""
