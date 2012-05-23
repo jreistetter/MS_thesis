@@ -41,11 +41,11 @@ mod_adj_to_list <- function(modID, modules, net_obj, threshold){
 
 mod_adj_to_cyto <- function(mod_adj, out_path){
   out.f <- file(out_path, "w")
-  write("source\ttarget\tr2\trv1\trv2", out.f, append=T)
+  write("source\tinteraction\ttarget\tr2", out.f, append=T)
   for (i in 1:nrow(mod_adj)){
     row <- mod_adj[i,]
-    r2.format <- round(as.numeric(row[3]), digits=3)
-    line <- paste(c(row[4], row[5], r2.format, row[1], row[2]), collapse="\t")
+    r2.format <- round(as.numeric(row$r2), digits=3)
+    line <- paste(c(row$gene1, row$interaction, row$gene2, r2.format), collapse="\t")
     write(line, out.f, append=T)
   }
   close(out.f)
@@ -153,9 +153,11 @@ colnames(tf.binding) <- c("TF", "target", "weight", "direction")
 mod5.adj <- mod_adj_to_list("5", wgcna.modules, filt_pt5.net, 0)
 
 mod5.adj.tfs <- add_TFs(mod5.adj, tf.binding)
+mod_adj_to_cyto(mod5.adj.tfs, "data/results/cytoscape/w.mod5.tfs.sif")
+
 
 mod5.adj.annot <- annotate_adj(mod5.adj, genes.annot)
-mod_adj_to_cyto(mod5.adj.annot, "data/results/cytoscape/w.mod5.sif")
+
 
 #Make node annotation file with gene name, Rv ID, PMN membership, and TF binding
 w.node.annot <- merge(wgcna.modules, genes.annot,
