@@ -108,11 +108,51 @@ wgcna.good <- read.table("data/results/WGCNA_good_modules.txt",
 wgcna.modules <- wgcna.modules.raw[wgcna.modules.raw$moduleID%in%wgcna.good,]
 w.adj <- filt_pt5.net@adjacency
 
+#TF binding
+tf.binding <- read.table("PMN_data/4.12.2012/H37Rv.pdna.list",
+                         head=F, sep="\t")
+
+colnames(tf.binding) <- c("TF", "target", "weight", "direction")
 
 
+#Write module out to cytoscape files
 mod5.adj <- mod_adj_to_list("5", wgcna.modules, filt_pt5.net, 0)
+
+mod5.adj.tfs <- add_TFs(mod5.adj, tf.binding)
+
 mod5.adj.annot <- annotate_adj(mod5.adj, genes.annot)
 mod_adj_to_cyto(mod5.adj.annot, "data/results/cytoscape/w.mod5.sif")
+
+#Make node annotation file with gene name, Rv ID, PMN membership, and TF binding
+w.node.annot <- merge(wgcna.modules, genes.annot,
+                        by.x="gene", by.y="rvID",
+                        all.x=T)
+
+#some genes have 2 names, remove those rows
+w.node.annot <- w.node.annot[-c(891, 932),]
+
+#Add PMN module membership, not parents though
+colnames(w.node.annot)[2] <- "W.module"
+pmn.module.members <- pmn.modules[pmn.modules$parent==F,]
+
+w.node.annot <- merge(w.node.annot, pmn.module.members[,c(1,3)],
+                      by.x="gene", by.y="rvID",
+                      all.x=T)
+
+pmn.parents <- pmn.modules[pmn.modules$parent==T,]
+
+w.node.annot$ParentOf <- NA
+for (parent in unique(pmn.parents$rvID)){
+  parent.mods.v <- pmn.parents[pmn.parents$rvID == parent,1]
+  parent.mods  <- paste(parent.mods.v, collapse="|")
+  if (parent %in% w.node.annot$gene){
+    w.node.annot[w.node.annot$gene == parent,]$ParentOf <- parent.mods
+  }
+}
+
+
+
+
 p.mod_membership_cyto(mod5.adj.annot, pmn.modules, 
                       "data/results/cytoscape/w.mod5.pmn.noa")
 
