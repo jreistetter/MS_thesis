@@ -34,15 +34,12 @@ calc_overlap <- function(pmn.id, wgcna.id, pmn.modules, wgcna.modules, n){
   c_table <- make_c_table(pmn.id, wgcna.id, pmn.modules, wgcna.modules, n)
   p.val <- fisher.test(c_table)$p.value
   
-  return(-log10(p.val))
+  return(p.val)
   
 }
 
 overlap_table <- function(pmn.mod.ids, wgcna.mod.ids, pmn.modules, wgcna.modules, n){
   pTable <- matrix(0, nrow=length(pmn.mod.ids), ncol=length(wgcna.mod.ids))
-  
-  rownames(pTable) <- pmn.mod.ids
-  colnames(pTable) <- wgcna.mod.ids
   
   for (i in 1:length(pmn.mod.ids)){
     pmn.id <- pmn.mod.ids[i]
@@ -52,7 +49,14 @@ overlap_table <- function(pmn.mod.ids, wgcna.mod.ids, pmn.modules, wgcna.modules
       pTable[i, j] <- overlap.p
     }
   }
-  return(pTable)
+  
+  p.adj <- p.adjust(c(pTable), method="BH")
+  pTable.adj <- matrix(p.adj, ncol=ncol(pTable))
+  
+  rownames(pTable.adj) <- pmn.mod.ids
+  colnames(pTable.adj) <- wgcna.mod.ids
+  
+  return(-log10(pTable.adj))
 }
 
 
@@ -80,8 +84,8 @@ pmn.mod.stats <- read.table("../PMN_output/4.17_30mods_genes_pathsizes.txt",
                             head=T, sep='\t')
 
 pmn.modIDs <- pmn.mod.stats[pmn.mod.stats$n_genes < 100 & pmn.mod.stats$thresh.0.2 > 0,]$moduleID
-pmn.good.mod.ids <- pmn.mod.stats[pmn.mod.stats$n_genes < 100 & pmn.mod.stats$thresh.0.2 > 0,1]
-write.table(pmn.good.mod.ids, 
+
+write.table(pmn.modIDs, 
             "results/PMN_good_modules.txt", sep="\t", 
             row.names=F, col.names=T, quote=F)
 
@@ -114,3 +118,4 @@ write.table(overlap.table, "results/Module_overlap.txt",
 labeledHeatmap(overlap.table,
                xLabels=wgcna.modIDs,
                yLabels=pmn.modIDs)
+
