@@ -117,17 +117,18 @@ write.table(overlap.table, "results/Module_overlap.txt",
             quote=F,
             sep="\t")
 
-overlap.heat <- apply(overlap.table, c(1,2), function(x){
-  if (x < 2){
-    return(0)
-  }
-  return(x)
-}
+overlap.heat <- apply(overlap.table, c(1,2), 
+                      function(x){
+                                    if (x < 2){
+                                      return(0)
+                                    }
+                                    return(x)
+                                  }
                       )
                       
 
-heatmap.2(overlap.heat,
-          col=colorRampPalette(c("white", "darkblue"))(100),
+heatmap.2(sqrt(overlap.heat),
+          col=colorRampPalette(c("white", "darkred"))(10000),
           trace="none",
           Rowv=F,
           Colv=F,
@@ -135,4 +136,5 @@ heatmap.2(overlap.heat,
           xlab="WGCNA modules",
           ylab="PMN modules",
           density.info="none")
+
 
