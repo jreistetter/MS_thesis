@@ -72,6 +72,8 @@ get_module <- function(modID, modules){
 #
 #########################
 
+library(gplots)
+
 #Load data
 
 setwd("~/Dropbox/thesis_work/data/")
@@ -105,7 +107,7 @@ write.table(wgcna.modIDs, "results/WGCNA_good_modules.txt",
 
 
 #Calculate overlap
-n <- sum(pmn.modules$gene %in% wgcna.modules$gene)
+n <- length(unique(c(pmn.modules$gene, wgcna.modules$gene)))
 
 overlap.table <- overlap_table(pmn.modIDs, wgcna.modIDs, pmn.modules, wgcna.modules, n)
 
@@ -115,7 +117,22 @@ write.table(overlap.table, "results/Module_overlap.txt",
             quote=F,
             sep="\t")
 
-labeledHeatmap(overlap.table,
-               xLabels=wgcna.modIDs,
-               yLabels=pmn.modIDs)
+overlap.heat <- apply(overlap.table, c(1,2), function(x){
+  if (x < 2){
+    return(0)
+  }
+  return(x)
+}
+                      )
+                      
+
+heatmap.2(overlap.heat,
+          col=colorRampPalette(c("white", "darkblue"))(100),
+          trace="none",
+          Rowv=F,
+          Colv=F,
+          scale="none",
+          xlab="WGCNA modules",
+          ylab="PMN modules",
+          density.info="none")
 
