@@ -17,3 +17,8 @@ plotDendroAndColors(filt_pt5.net@geneTree, filt_pt5.net@mergedColors,
                     guideHang=0.05,
                     main="")
 
+
+dissTOM <- 1 - filt_pt5.net@TOM
+plotTOM <- dissTOM^7
+diag(plotTOM) <- NA
+TOMplot(plotTOM, filt_pt5.net@geneTree, filt_pt5.net@mergedColors)
