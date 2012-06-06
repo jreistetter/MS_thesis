@@ -59,16 +59,15 @@ high_var.small <- newProconaObj(networkName="Mtb_highvar",
                            pepdat=expr.highvar, signed="signed", minModuleSize=5)
 
 #After talking with Shannon, use lower threshold to get more genes
+pt5_thresh <- pickSoftThreshold(expr.t[,gene.var > 0.5])
+write.table(pt5_thresh$fitIndices, file="WGCNA_pt5_thresh.txt",
+            col.names=T, row.names=F, quote=F, sep='\t')
+
 filt_pt5.net <- newProconaObj(networkName="Mtb_pt5_filtered",
                               pepdat=expr.t[,gene.var>0.5], signed="signed",
                               minModuleSize=5)
 
 save(filt_pt5.net, file="filt_pt5.net.RData")
-
-pt5_thresh <- pickSoftThreshold(expr.t[,gene.var > 0.75])
-
-write.table(pt5_thresh$fitIndices, file="WGCNA_pt5_thresh.txt",
-            col.names=T, row.names=F, quote=F, sep='\t')
 
 plot(pt5_thresh$fitIndices$Power, pt5_thresh$fitIndices$SFT.R.sq,
      main="2158 Genes SD > 0.5\nSoft R2 vs Power",
