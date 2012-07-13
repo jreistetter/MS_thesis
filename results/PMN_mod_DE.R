@@ -122,6 +122,7 @@ mod.heat <- function(mod.genes, expr, samples, title, labSize=0.5){
             symkey=T,
             col=redgreen,
             key=TRUE,
+            density.info="none",
             ColSideColors=col.side)
 }
 
@@ -221,12 +222,18 @@ mod.heat.time(mod2, expr.immune, BUGS58.samples)
 ## 1h = orange, 4h = purple, 18h = red
 
 # 1 hour
+png("data/results/PMN_DE_heat/PMN_DC_v_Mac_1h.png", 
+    1000, 881, pointsize=14, bg="transparent")
 arrays.1h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "1h")
 mod.heat(mod2, arrays.1h, BUGS58.samples)
+dev.off()
 
 # 4 hours
+png("data/results/PMN_DE_heat/PMN_DC_v_Mac_4h.png", 
+    1000, 881, pointsize=14, bg="transparent")
 arrays.4h <- get_arrays_time(BUGS58.samples, BUGS58.arrays, "4h")
 mod.heat(mod2, arrays.4h, BUGS58.samples)
+dev.off()
 
 # 18 hours
 png("data/results/PMN_DE_heat/PMN_DC_v_Mac_18h.png", 
