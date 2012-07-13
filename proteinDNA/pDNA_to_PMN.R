@@ -45,7 +45,7 @@ root_path <-"~/Dropbox/thesis_work"
 
 
 setwd(paste(root_path, "/data/protein-DNA/RData", sep=""))
-source(paste(root_path, "/code/proteinDNA/pdna_funcs.R", sep=""))
+source(paste(root_path, "/code/thesis_funcs.R", sep=""))
 
 #Import regulator/target pairs from databases
 load("mtbreglist.pairs.RData")
