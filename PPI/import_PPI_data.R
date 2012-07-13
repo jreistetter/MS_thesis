@@ -23,8 +23,7 @@ conf_filter = 900
 #OHSU
 setwd("~/Dropbox")
 
-#Laptop
-#setwd("~/schoolDB/Dropbox")
+source("./thesis_work/code/thesis_funcs.R")
 
 #Goto PPI data dir
 setwd("./thesis_work/data/PPI/")
