@@ -124,6 +124,8 @@ ppi.edge_conf$edge_id <- paste(ppi.edge_conf$e1, ppi.edge_conf$e2, sep=",")
 nrow(ppi.edge_conf)
 #[1] 45136
 ppi.edge_conf <- ppi.edge_conf[!duplicated(ppi.edge_conf$edge_id), c(1,2,3)]
+ppi.edge_conf$e1 <- toupper(ppi.edge_conf$e1)
+ppi.edge_conf$e2 <- toupper(ppi.edge_conf$e2)
 
 nrow(ppi.edge_conf)
 # [1] 45085, took out 51 dupes
