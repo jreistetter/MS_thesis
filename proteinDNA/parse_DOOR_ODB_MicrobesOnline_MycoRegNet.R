@@ -16,12 +16,10 @@
 # -import data
 
 #At OHSU Dropbox
-root_path <-"/Domain/ohsum01.ohsu.edu/Users/reistett/Dropbox/thesis_work"
-#My laptop Dropbox
-#root_path <- "~/schoolDB/Dropbox/thesis_work"
+root_path <-"~/Dropbox/thesis_work"
 
 setwd(paste(root_path, "/data/protein-DNA/", sep=""))
-source(paste(root_path, "/code/proteinDNA/pdna_funcs.R", sep=""))
+source(paste(root_path, "/code/thesis_funcs.R", sep=""))
 
 ###################################################
 #
