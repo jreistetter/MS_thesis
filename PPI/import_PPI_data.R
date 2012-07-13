@@ -117,6 +117,11 @@ ppi.edges <- ppi.edges[!duplicated(ppi.edges$edge_id),c(1,2)]
 nrow(ppi.edges)
 #[1] 45085, took out 51 dupes
 
+#Make PMN interaction file with weight based on confidence score
+#Assign a confidence score of 900 to all 2-hybrid interactions
+hybrid_conf <- hybrid[,c(1,2)]
+hybrid_conf$conf <- 900
+
 #Use combined degree from the two networks
 node_ids <- unique(c(ppi.edges$e1, ppi.edges$e2))
 
