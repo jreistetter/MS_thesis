@@ -73,6 +73,8 @@ p.mod_membership_cyto <- function(w.mod_adj, p.modules, out_path){
 }
 
 add_TFs <- function(adj_list, pDNA){
+  #Add TF-target relationships to TFs and targets
+  #in the same module.
   adj_list$interaction <- "pp"
   tfs <- pDNA$TF
   
@@ -104,6 +106,18 @@ add_TFs <- function(adj_list, pDNA){
     }
   }
   return(adj_list)
+}
+
+add_new_TF <- function(tf_ID, targets, pDNA){
+  #Adds pDNA edges to existing pDNA object
+  #for a newly found TF
+  targets <- toupper(targets)
+  for (gene in targets){
+    if (!any(pDNA$tf == tf_ID & pDNA$target==gene)){
+      pDNA <- rbind(pDNA, c(tf_ID, gene, 1, 1))
+    }
+  }
+  return(pDNA)
 }
 
 annotate_adj <- function(adj.df, annot.df){
@@ -146,7 +160,20 @@ w.adj <- filt_pt5.net@adjacency
 tf.binding <- read.table("PMN_data/4.12.2012/H37Rv.pdna.list",
                          head=F, sep="\t")
 
-colnames(tf.binding) <- c("TF", "target", "weight", "direction")
+colnames(tf.binding) <- c("tf", "target", "weight", "direction")
+
+
+#Add dosR regulon
+dosR <- read.table("data/known_regulons/DosR.txt",
+                   head=F)
+
+dosR[,1] <- toupper(dosR[,1])
+
+dosR.not <- dosR[!(dosR[,1]%in%tf.binding$target),1]
+
+for (gene in dosR.not){
+  tf.binding <- rbind(tf.binding, c("RV3133C", gene, 1, 1))
+}
 
 
 #Write module out to cytoscape files
@@ -157,6 +184,76 @@ mod_adj_to_cyto(mod5.adj.tfs, "data/results/cytoscape/w.mod5.tfs.sif")
 
 
 mod5.adj.annot <- annotate_adj(mod5.adj, genes.annot)
+
+#mod5 TF binding
+mod5.tfs <- get_tf(5, wgcna.modules, tf.binding)
+mod5.tf.edges <- tf_edges(5, wgcna.modules, tf.binding)
+
+write.table(mod5.tf.edges, "data/results/WGCA_5_TF_edges.txt",
+            col.names=T, row.names=F, quote=F, sep="\t")
+
+tf_edges <- function(modID, modules, pDNA){
+  mod.members <- get_module(modID, modules)
+  edges <- pDNA[pDNA$target%in%mod.members,c(1,2)]
+  return(edges)
+}
+
+##WRite out good WGCNA module for Georgiana
+
+rv3579.wmod <- gene.mod("RV3579", wgcna.modules) #none
+
+# ctpV is Rv0969
+ctpV.wmod <- gene.mod("RV0969", wgcna.modules) # module 20, overlaps with p12
+
+# espR is Rv3849
+espR.wmod <- gene.mod("RV3849", wgcna.modules) # module 13, overlaps more strongly with p12
+
+# mmpL4 is Rv0450c
+mmpL4.wmod <- gene.mod("RV0450C", wgcna.modules) # none
+
+# mmpL1 is Rv0402c
+mmpL1.wmod <- gene.mod("RV0402C", wgcna.modules) # none
+
+# mmpl10 is Rv1183
+mmpL10.wmod <- gene.mod("RV1183", wgcna.modules) # module 7, very significant overlap with p23
+
+#Go with mmpl10 and W7
+mod7.adj <- mod_adj_to_list("7", wgcna.modules, filt_pt5.net, 0.4)
+
+mod7.adj.tfs <- add_TFs(mod7.adj, tf.binding)
+#Doesn't seem like any TF target in this module, double check though
+
+mod_adj_to_cyto(mod7.adj.tfs, "data/results/cytoscape/w.mod7.tfs.sif")
+
+#W7 TF binding
+W7.tfs <- get_tf(7, wgcna.modules, tf.binding)
+W7.tf.edges <- tf_edges(7, wgcna.modules, tf.binding)
+
+write.table(W7.tf.edges, "data/results/WGCA_7_TF_edges.txt",
+            col.names=T, row.names=F, quote=F, sep="\t")
+
+sum(tf.binding$target %in% mod7.adj$gene1)
+sum(tf.binding$target %in% mod7.adj$gene2)
+
+bound <- which(mod7.adj$gene2 %in% tf.binding$target)
+head(mod7.adj[bound,])
+
+tf.binding[tf.binding$target=="RV0524",]
+
+#Add Rv3676 targets to cytoscape
+W7.members <- get_module(7, wgcna.modules)
+
+Rv3676.targets <- read.table("data/protein-DNA/literature/PMID16267303/Rv3676_targets.txt")
+Rv3676.targets <- toupper(Rv3676.targets[,1])
+
+sum(Rv3676.targets %in% W7.members)
+# 0, doesn't bind any more in the module
+
+phoP.targets <- read.table("data/protein-DNA/literature/PMID16573683 - phoP/phoP_regulated.txt")
+phoP.targets <- toupper(phoP.targets[,1])
+phoP.targets[which(phoP.targets%in%W7.members)]
+
+sum(phoP.targets %in% W7.members)
 
 
 #Make node annotation file with gene name, Rv ID, PMN membership, and TF binding
@@ -186,7 +283,8 @@ for (parent in unique(pmn.parents$rvID)){
   }
 }
 
-
+write.table(w.node.annot[w.node.annot$W.module==5,], "data/results/cytoscape/WGCNA_5_node_attributes.noa",
+            col.names=T, row.names=F, sep="\t", quote=F)
 
 
 p.mod_membership_cyto(mod5.adj.annot, pmn.modules, 
