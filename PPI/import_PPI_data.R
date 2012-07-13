@@ -14,7 +14,13 @@
 # format:
 # tab-delimited with 4 columns <prot1> <prot2> <p-value> <direction>
 # direction = 0 (undirected), 1 (directed forward), or 2 (directed backwards) 
-# In pp interaction files, it will typically be 0 (undirected). 
+# In pp interaction files, it will typically be 0 (undirected).
+#
+#
+# For confidence score calculated differently than paper:
+# Weighting function is (1200 - SCORE)/1000 - 0.15
+# Max confidence score of 1000 has weight of 0.05, 
+# min confidence score of 700 has weight of 0.35
 
 ##Set STRING confidence score filter
 conf_filter = 900
