@@ -162,3 +162,22 @@ uniform_weights <- function(edges, weight, direction, out_path){
               col.names=F)
   
 }
+
+calculated_weights <- function(edges, conf_scores, weight_func, 
+                               direction, out_path){
+  #Assigns a calculated weight to interaction list
+  #and writes out in PMN format to file
+  
+  #Params:
+  #edges - df with source and target columns
+  #conf_scores - vector of confidence scores for each edge in edges
+  #direction - edge direction, see PMN docs for value assignments
+  #weight_func - function to calculate the edge confidence
+  #out_path - string for path to output PMN file
+  
+  edges$conf <- weight_func(conf_scores)
+  edges$direction <- direction
+  write.table(edges, file=out_path, quote=F, sep="\t", row.names=F,
+              col.names=F)
+  
+}
