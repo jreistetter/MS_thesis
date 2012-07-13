@@ -124,3 +124,20 @@ op_list_to_df <- function(op.list){
   
   return(df)
   }
+
+uniform_weights <- function(edges, weight, direction, out_path){
+  #Assigns a uniform weight to interaction list
+  #and writes out in PMN format to file
+  
+  #Params:
+  #edges - df with source and target columns
+  #direction - edge direction, see PMN docs for value assignments
+  #weight - weight to assign to all edges
+  #out_path - string for path to output PMN file
+  
+  edges$conf <- weight
+  edges$direction <- direction
+  write.table(edges, file=out_path, quote=F, sep="\t", row.names=F,
+              col.names=F)
+  
+}
