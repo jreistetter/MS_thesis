@@ -118,9 +118,24 @@ nrow(ppi.edges)
 #[1] 45085, took out 51 dupes
 
 #Make PMN interaction file with weight based on confidence score
+
 #Assign a confidence score of 900 to all 2-hybrid interactions
 hybrid_conf <- hybrid[,c(1,2)]
 hybrid_conf$conf <- 900
+
+#Filter string dataset at 700 and keep confidence score
+string.700_conf <- string[string$conf >= 700, ]
+colnames(string.700_conf) <- c("e1", "e2", "conf")
+
+ppi.edge_conf <- rbind(hybrid_conf, string.700_conf)
+ppi.edge_conf$edge_id <- paste(ppi.edge_conf$e1, ppi.edge_conf$e2, sep=",")
+
+nrow(ppi.edge_conf)
+#[1] 45136
+ppi.edge_conf <- ppi.edge_conf[!duplicated(ppi.edge_conf$edge_id), c(1,2,3)]
+
+nrow(ppi.edge_conf)
+# [1] 45085, took out 51 dupes
 
 #Use combined degree from the two networks
 node_ids <- unique(c(ppi.edges$e1, ppi.edges$e2))
