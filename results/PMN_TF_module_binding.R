@@ -130,3 +130,7 @@ write.table(mod2.tfs, "data/results/PMN_mod2_TFs.txt",
 write.table(tf.stats, "data/results/PMN_TF_module_binding.txt",
             row.names=F, col.names=T, quote=F, sep="\t")
 
+mod5.tfs <- get_tf("mod5", modules, tfs)
+write.table(mod5.tfs, "data/results/PMN_mod5_TFs.txt",
+            col.names=T, row.names=F, quote=F, sep="\t")
+
