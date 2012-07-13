@@ -137,6 +137,10 @@ ppi.edge_conf <- ppi.edge_conf[!duplicated(ppi.edge_conf$edge_id), c(1,2,3)]
 nrow(ppi.edge_conf)
 # [1] 45085, took out 51 dupes
 
+#Max confidence score of 1000 has weight of 0.05, 
+#min confidence score of 700 has weight of 0.35
+STRING_conf <- function(x){(1200 - x)/1000 - 0.15}
+
 #Use combined degree from the two networks
 node_ids <- unique(c(ppi.edges$e1, ppi.edges$e2))
 
