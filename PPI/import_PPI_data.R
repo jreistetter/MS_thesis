@@ -107,15 +107,6 @@ string.filtered[,2] <- as.character(string.filtered[,2])
 #will affect only a small part of the network, so not going to do that.
 
 ##USE 700 CONFIDENCE FILTER
-colnames(hybrid)[1:2] <- c("e1", "e2")
-colnames(string.700)[1:2] <- c("e1", "e2")
-
-ppi.edges <- rbind(hybrid, string.700)
-nrow(ppi.edges)
-#[1] 45136
-ppi.edges <- ppi.edges[!duplicated(ppi.edges$edge_id),c(1,2)]
-nrow(ppi.edges)
-#[1] 45085, took out 51 dupes
 
 #Make PMN interaction file with weight based on confidence score
 
@@ -140,6 +131,20 @@ nrow(ppi.edge_conf)
 #Max confidence score of 1000 has weight of 0.05, 
 #min confidence score of 700 has weight of 0.35
 STRING_conf <- function(x){(1200 - x)/1000 - 0.15}
+
+calculated_weights(ppi.edge_conf[,c(1,2)], ppi.edge_conf$conf,
+                   STRING_conf, 0, "mtb_confidence.pp.list")
+
+#Calculate weights based on PMN paper
+colnames(hybrid)[1:2] <- c("e1", "e2")
+colnames(string.700)[1:2] <- c("e1", "e2")
+
+ppi.edges <- rbind(hybrid, string.700)
+nrow(ppi.edges)
+#[1] 45136
+ppi.edges <- ppi.edges[!duplicated(ppi.edges$edge_id),c(1,2)]
+nrow(ppi.edges)
+#[1] 45085, took out 51 dupes
 
 #Use combined degree from the two networks
 node_ids <- unique(c(ppi.edges$e1, ppi.edges$e2))
