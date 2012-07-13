@@ -178,6 +178,12 @@ nrow(pDNA.edges)
 #remove pairs column
 pDNA.edges <- pDNA.edges[,-3]
 
+#Save edges without confidence so that it can be easily changed
+save(pDNA.edges, file="pDNA.edges.no_confidence.RData")
+
+#Create an edge file with uniform edge weights.
+uniform_weights(pDNA.edges, 0.05, 1, "../H37Rv_0.05_uniform_pdna.list")
+uniform_weights(pDNA.edges, 0.1, 1, "../H37Rv_0.1_uniform_pdna.list")
 
 #Calculate confidence score based on PMN paper
 
