@@ -192,3 +192,10 @@ mkdir ../output/7.31.12_30_mods_0.1_highvar;
 nohup perl LearnPMN_web_2parents.pl -k 1 -s 30 -d y -C y -e ../data/7.13.2012/mtb_high_var_expr_1.5.txt -r ../data/4.12.2012/final.regulators -j ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar -u n -i ../data/7.13.2012/mtb_confidence.pp.list -I ../data/7.13.2012/H37Rv_0.1_uniform_pdna.list -p 1 -c ../data/4.12.2012/7.6.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 7.31.12_30_mods_0.1_highvar.log &
 
 
+-Also start some runs straight from binary of output data files from 7/6. 7/6 run from perl script had no parents, seeing if there is something special about the 4/13 output data that allows it to find parents when run from binary, or if there is an issue with how the perl script calls the binary. Since I was able to get parents twice running straight from binary on 4/13 data, need to rule out that input data to binary is the issue.
+
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/7.31.12_30_mods_binary;
+nohup ./LearnModuleNetIntMap -S 50 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/7.6.12_30_mods/7.6.12_30_mods.test.1.data -s ../output/7.6.12_30_mods/7.6.12_30_mods.30.net -o ../output/7.31.12_30_mods_binary/7.31.12_30_mods_binary.out.net _c ../data/4.12.2012/7.6.2012.conf _m ../output/7.6.12_30_mods/7.6.12_30_mods.gene-prot.map ../output/7.6.12_30_mods/7.6.12_30_mods.pp.inter ../output/7.6.12_30_mods/7.6.12_30_mods.pdna.inter _f ../output/7.31.12_30_mods_binary/7.31.12_30_mods_binary.inter.net &> 7.31.12_30_mods_binary.log &
+
+
