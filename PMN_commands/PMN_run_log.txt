@@ -181,3 +181,14 @@ nohup perl LearnPMN_web_2parents.pl -k 1 -s 30 -d y -C y -e ../data/7.13.2012/mt
 
 7/24 - Redo them, got stuck on kmeans right away last time
 
+7/31/12
+-High var expression file was corrupted, rerun with good file
+
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/7.31.12_30_mods_0.05_highvar;
+nohup perl LearnPMN_web_2parents.pl -k 1 -s 30 -d y -C y -e ../data/7.13.2012/mtb_high_var_expr_1.5.txt -r ../data/4.12.2012/final.regulators -j ../output/7.31.12_30_mods_0.05_highvar/7.31.12_30_mods_0.05_highvar -u n -i ../data/7.13.2012/mtb_confidence.pp.list -I ../data/7.13.2012/H37Rv_0.05_uniform_pdna.list -p 1 -c ../data/4.12.2012/7.6.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 7.31.12_30_mods_0.05_highvar.log &
+
+mkdir ../output/7.31.12_30_mods_0.1_highvar;
+nohup perl LearnPMN_web_2parents.pl -k 1 -s 30 -d y -C y -e ../data/7.13.2012/mtb_high_var_expr_1.5.txt -r ../data/4.12.2012/final.regulators -j ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar -u n -i ../data/7.13.2012/mtb_confidence.pp.list -I ../data/7.13.2012/H37Rv_0.1_uniform_pdna.list -p 1 -c ../data/4.12.2012/7.6.2012.conf -t ../data/4.12.2012/H37Rv.tfs &> 7.31.12_30_mods_0.1_highvar.log &
+
+
