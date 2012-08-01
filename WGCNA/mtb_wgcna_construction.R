@@ -1,10 +1,10 @@
-# Discover modules via WGCNA using a power of 8 for the soft-thresholding
+# Discover modules via WGCNA using a power of 6 for the soft-thresholding
 # in the adjacency matrix and save as an R object for use in later scripts.
 # 
 # Written by Joe Reistetter
 # Last updated: 7/31/2012
 #
-# -Power is 0.6
+# -Power is 6
 # -Minimum module size is 10
 # -Genes filtered for SD > 0.5
 # -TOM is signed
