@@ -198,4 +198,17 @@ cd /home/reistett/PMN/PMN_software;
 mkdir ../output/7.31.12_30_mods_binary;
 nohup ./LearnModuleNetIntMap -S 50 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/7.6.12_30_mods/7.6.12_30_mods.test.1.data -s ../output/7.6.12_30_mods/7.6.12_30_mods.30.net -o ../output/7.31.12_30_mods_binary/7.31.12_30_mods_binary.out.net _c ../data/4.12.2012/7.6.2012.conf _m ../output/7.6.12_30_mods/7.6.12_30_mods.gene-prot.map ../output/7.6.12_30_mods/7.6.12_30_mods.pp.inter ../output/7.6.12_30_mods/7.6.12_30_mods.pdna.inter _f ../output/7.31.12_30_mods_binary/7.31.12_30_mods_binary.inter.net &> 7.31.12_30_mods_binary.log &
 
+8/10
+-Run high var datasets straight from binary
+-Run uniform protein weights straight from binary
+
+cd /home/reistett/PMN/PMN_software;
+mkdir ../output/8.10.12_30_mods_0.05;
+nohup ./LearnModuleNetIntMap -S 50 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/7.13.12_30_mods_0.05/7.13.12_30_mods_0.05.test.1.data -s ../output/7.13.12_30_mods_0.05/7.13.12_30_mods_0.05.30.net -o ../output/8.10.12_30_mods_0.05/8.10.12_30_mods_0.05.out.net _c ../data/4.12.2012/7.6.2012.conf _m ../output/7.13.12_30_mods_0.05/7.13.12_30_mods_0.05.gene-prot.map ../output/7.13.12_30_mods_0.05/7.13.12_30_mods_0.05.pp.inter ../output/7.13.12_30_mods_0.05/7.13.12_30_mods_0.05.pdna.inter _f ../output/8.10.12_30_mods_0.05/8.10.12_30_mods_0.05.inter.net &> 8.10.12_30_mods_0.05.log &
+
+mkdir ../output/8.10.12_30_mods_0.1;
+nohup ./LearnModuleNetIntMap -S 50 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/7.13.12_30_mods_0.1/7.13.12_30_mods_0.1.test.1.data -s ../output/7.13.12_30_mods_0.1/7.13.12_30_mods_0.1.30.net -o ../output/8.10.12_30_mods_0.1/8.10.12_30_mods_0.1.out.net _c ../data/4.12.2012/7.6.2012.conf _m ../output/7.13.12_30_mods_0.1/7.13.12_30_mods_0.1.gene-prot.map ../output/7.13.12_30_mods_0.1/7.13.12_30_mods_0.1.pp.inter ../output/7.13.12_30_mods_0.1/7.13.12_30_mods_0.1.pdna.inter _f ../output/8.10.12_30_mods_0.1/8.10.12_30_mods_0.1.inter.net &> 8.10.12_30_mods_0.1.log &
+
+mkdir ../output/8.10.12_30_mods_0.1_highvar;
+nohup ./LearnModuleNetIntMap -S 50 -A R- -M p -_i 10 -+ 50 -c cons.30.2par -i ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar.test.1.data -s ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar.30.net -o ../output/8.10.12_30_mods_0.1_highvar/8.10.12_30_mods_0.1_highvar.out.net _c ../data/4.12.2012/7.6.2012.conf _m ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar.gene-prot.map ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar.pp.inter ../output/7.31.12_30_mods_0.1_highvar/7.31.12_30_mods_0.1_highvar.pdna.inter _f ../output/8.10.12_30_mods_0.1_highvar/8.10.12_30_mods_0.1_highvar.inter.net &> 8.10.12_30_mods_0.1_highvar.log &
 
