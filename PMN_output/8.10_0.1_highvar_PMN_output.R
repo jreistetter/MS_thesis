@@ -109,3 +109,19 @@ write.table(stats,
 
 write.table(cpds, file="./output/8.10.12_30_mods_0.1_highvar_CPDs.txt",
             col.names=T, row.names=F, quote=F, sep='\t')
+
+#Write out a file for each module for submission to GOEAST, including parents
+comb_par <- unique(cpds.non_uniform$parents)
+parents <- unlist(sapply(comb_par, function(x) strsplit(x, " ", fixed=T), USE.NAMES=F))
+parents <- parents[!is.na(parents)]
+
+for (mod_id in non_uniform){
+  mod_genes <- mod_members[mod_members$moduleID==mod_id,2]
+  mod_parents_raw <- cpds.non_uniform[cpds.non_uniform$moduleID==mod_id,2][1]
+  mod_parents <- unlist(strsplit(mod_parents_raw, " ", fixed=T))
+  mod_genes <- c(mod_parents, mod_genes)
+  f_name <- paste("./output/GOEAST/", mod_id, "_genes.txt", sep="")
+  write.table(mod_genes, f_name, quote=F, row.names=F, col.names=F)
+  
+}
+
