@@ -49,6 +49,34 @@ gene.ids.all <- getBM(attributes=c("tuberculist", "external_gene_id"),
                   filters="tuberculist", 
                   values=modules.raw$gene, mart=bac)
 
+nrow(modules.raw)
+nrow(gene.ids.all)
+# > nrow(modules.raw)
+# [1] 2158
+# > nrow(gene.ids.all)
+# [1] 2203
+# The mart query returned more rows, investigate.
+
+sum(duplicated(gene.ids.all$tuberculist))
+#[1] 48, so have dupes
+
+# > gene.ids.all[gene.ids.all$tuberculist=="Rv3186",]
+# tuberculist external_gene_id
+# 74        Rv3186          Rv1370c
+# 99        Rv3186           Rv2105
+# 494       Rv3186          Rv3381c
+# I looked these up on tbdb, all are called "transposase" but thats not their
+# official symbol. Some DB mapping error, need to remove these
+
+# Decided to use tbdb.org online annotation tool to get these:
+# http://genome.tbdb.org/annotation/genome/tbdb/
+#   BatchSelect.html?target=AnnotationList.html
+
+# Write out list of Rv Ids for submission
+
+write.table(modules.raw$gene, "../../data/exprs/high_var_gene_list.txt",
+            quote=F, row.names=F, col.names=F)
+
 gene.ids.all$tuberculist <- toupper(gene.ids.all$tuberculist)
 
 colnames(gene.ids.all) <- c("rvID", "name")
