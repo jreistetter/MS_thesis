@@ -25,6 +25,14 @@ all_mod_ids <- unique(cpds$moduleID)
 all_mod_ids[which(!(all_mod_ids %in% non_uniform))]
 #[1] "mod29 " "mod10 "
 
+#Write out module membership for non-uniform modules
+mod_members <- read.table("8.10.12_30_mods_0.1_highvar_mods_members.txt",
+                          head=T, sep='\t', stringsAsFactors=F)
+
+mod_members.keep <- mod_members[mod_members$moduleID%in%non_uniform,]
+write.table(mod_members.keep, "./output/8.10_hivar_modules.txt",
+            col.names=T, row.names=T,sep="\t", quote=F)
+
 cpds.all_not_uniform <- cpds[cpds$moduleID %in% non_uniform,]
 cpds.all_not_uniform$uniform <- TRUE
 #Filter out to get only the non-uniform probs
@@ -62,12 +70,6 @@ n_changed.6 <- count_changed(cpds.non_uniform, 0.6)
 n_changed.7 <- count_changed(cpds.non_uniform, 0.7)
 n_changed.8 <- count_changed(cpds.non_uniform, 0.8)
 
-
-
-
-#Module membership
-mod_members <- read.table("8.10.12_30_mods_0.1_highvar_mods_members.txt",
-                       head=T, sep='\t', stringsAsFactors=F)
 
 #Number of genes per module
 mod_sizes <- as.data.frame(table(mod_members$moduleID))
