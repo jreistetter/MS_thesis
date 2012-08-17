@@ -40,7 +40,8 @@ setwd("~/Dropbox/thesis_work/PMN_output/")
 #
 ##############################
     
-modules.raw <- read.table("8.10.12_30_mods_0.1_highvar_mods_members.txt",
+modules.raw <- read.table(
+  "8.10.12_30_mods_0.1_highvar/output/8.10_hivar_modules.txt",
                           head=T, sep="\t")
 
 bac <- useMart('bacteria_mart_14', dataset='myc_30_gene')
@@ -52,7 +53,7 @@ gene.ids.all <- getBM(attributes=c("tuberculist", "external_gene_id"),
 nrow(modules.raw)
 nrow(gene.ids.all)
 # > nrow(modules.raw)
-# [1] 2158
+# [1] 2155
 # > nrow(gene.ids.all)
 # [1] 2203
 # The mart query returned more rows, investigate.
@@ -74,8 +75,17 @@ sum(duplicated(gene.ids.all$tuberculist))
 
 # Write out list of Rv Ids for submission
 
-write.table(modules.raw$gene, "../../data/exprs/high_var_gene_list.txt",
+write.table(modules.raw$gene, "../data/exprs/high_var_gene_list.txt",
             quote=F, row.names=F, col.names=F)
+
+# tbdb taking a long time, try using module list I used for GOEAST annotation
+# Those files written out by 8.10_0.1_highvar_PMN_output and include parents
+# Files in:
+# ~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/output/GOEAST
+
+# Saving output of tbdb annotations in:
+# ~/Dropbox/thesis_work/results/8.10_highvar_results/ModuleAnnotatinons
+
 
 gene.ids.all$tuberculist <- toupper(gene.ids.all$tuberculist)
 
