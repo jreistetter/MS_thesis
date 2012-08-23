@@ -167,16 +167,13 @@ setwd("~/Dropbox/thesis_work/")
 #Module data
 
 #Filter out the modules with no probabilities
-modules <- read.table("PMN_output/4.17.30_mods_members.txt",
+modules <- read.table(
+  "PMN_output/8.10.12_30_mods_0.1_highvar/output/8.10_hivar_modules.txt",
                           head=T, sep="\t")
 
-parents <- read.table("PMN_output/4.17.30_mods_parsed.txt",
+parents <- read.table(
+  "PMN_output/8.10.12_30_mods_0.1_highvar/8.10.12_30_mods_0.1_highvar_mods_parsed.txt",
                       head=T, sep="\t")
-
-modules.stats <- read.table("PMN_output/4.17_30mods_genes_pathsizes.txt",
-                            head=T, sep="\t")
-
-good.modules <- modules.stats[modules.stats$thresh.0.2 > 0 & modules.stats$n_genes < 100,]$moduleID
 
 #Arrays
 load("data/exprs/EBUGS58/EBUGS58.arrays.RData")
@@ -198,8 +195,9 @@ expr.immune <- BUGS58.arrays[,colnames(BUGS58.arrays)%in%immune.arrays]
 dim(expr.immune)
 #[1] 3765   36, 36 total arrays
 
-dc_mac.p.shrink.perm <- module.Hotelling(good.modules, modules, parents, expr.immune, 
+dc_mac.p.shrink.perm <- module.Hotelling(modules, modules, parents, expr.immune, 
                                 celltype, shrink=T)
+
 dc_mac.p.shrink.perm$p.adj <- p.adjust(dc_mac.p.shrink.perm$p, method="BH")
 write.table(dc_mac.p.shrink.perm, "data/results/PMN_DC_vs_Mac_DE.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
