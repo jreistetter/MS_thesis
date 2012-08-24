@@ -1,10 +1,14 @@
 # Script to look at characteristics of PMN modules for 8.10_hivar including:
-#   TF binding
+#   TF binding assigned by PMN
+#   pDNA interactions in each module
 #   Overall module expression
 
 options(stringsAsFactors=F)
 
 #Functions
+
+setwd("~/Dropbox/thesis_work/code/")
+source("thesis_funcs.R")
 parse_TF <- function(parse_df){
   #   Parses out the TF for each module from the pathways parsed
   #   by 8.10.12_30_mods_0.1_highvar_parse.py.
@@ -26,6 +30,27 @@ parse_TF <- function(parse_df){
   return(out_df)
 }
 
+write_mod_binding <- function(modID, mod.df, pDNA){
+#   Retrieves the known TF binding for a module.
+#   Writes out assigned TF and TF binding table to file
+#     
+#     Params:
+#       modID - module ID (str)
+#       mod.df - modules df
+#       pDNA - df of pDNA edges
+    
+  mod.TFs <- get_tf(modID, modules, pDNA)
+  mod.assigned.TF <- unique(modules_tf[modules_tf$modID==modID,2])
+  fname <- paste(modID, "_tf_binding.txt", sep="")
+  out_f <- file(fname, "w")
+  write("assigned TFs:", out_f)
+  write(mod.assigned.TF, out_f, sep="\t")
+  write("\n", out_f)
+  write.table(mod.TFs, out_f, append=T, quote=F, sep="\t",
+              row.names=F, col.names=F)
+  close(out_f)
+}
+
 #Load data
 setwd("~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/")
 
@@ -34,3 +59,20 @@ modules <- read.table("output/8.10_hivar_modules.txt",
 
 pathways <- read.table("8.10.12_30_mods_0.1_highvar_mods_pathways.txt",
                        sep=":", head=F)
+
+setwd("~/Dropbox/thesis_work/data/")
+
+pDNA.raw <- read.table("protein-DNA/H37Rv.pdna.list", sep="\t")
+pDNA <- pDNA.raw[,1:2]
+colnames(pDNA) <- c("tf", "target")
+
+modules_tf <- parse_TF(pathways)
+
+modIDs <- unique(modules$moduleID)
+
+#For each module, write out table of TFs targetting module and also the assigned
+# TF
+
+
+
+
