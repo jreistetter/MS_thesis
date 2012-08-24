@@ -262,22 +262,26 @@ write.table(time.1.18.pvals, "data/results/PMN_immunes_1h_vs_18h.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
 #Macs vs DCs at 1h, 4h, 18h with NAs removed
-dc_mac_18h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules, 
-                                   modules, parents, "18h", filterNA=T)
+dc_mac_18h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, 
+                                      modIDs, modules, parents, 
+                                        "18h", filterNA=T)
 
-write.table(dc_mac_18h.pvals.noNA, "data/results/PMN_DC_vs_macs_18h_noNA.txt",
+write.table(dc_mac_18h.pvals.noNA, 
+            "data/8.10_highvar_results/Module_DE/PMN_DC_vs_macs_18h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-dc_mac_4h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+dc_mac_4h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, modIDs,
                                   modules, parents, "4h", filterNA=T)
 
-write.table(dc_mac_4h.pvals.noNA, "data/results/PMN_DC_vs_macs_4h_noNA.txt",
+write.table(dc_mac_4h.pvals.noNA, 
+            "data/8.10_highvar_results/Module_DE/PMN_DC_vs_macs_4h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
-dc_mac_1h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, good.modules,
+dc_mac_1h.pvals.noNA <- immune.time.DE(BUGS58.samples, BUGS58.arrays, modIDs,
                                   modules, parents, "1h", filterNA=T)
 
-write.table(dc_mac_1h.pvals.noNA, "data/results/PMN_DC_vs_macs_1h_noNA.txt",
+write.table(dc_mac_1h.pvals.noNA, 
+            "data/8.10_highvar_results/Module_DE/PMN_DC_vs_macs_1h_noNA.txt",
             col.names=T, sep="\t", quote=F, row.names=F)
 
 
