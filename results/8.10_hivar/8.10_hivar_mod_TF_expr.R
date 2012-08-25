@@ -51,6 +51,26 @@ write_mod_binding <- function(modID, mod.df, pDNA){
   close(out_f)
 }
 
+check_binding <- function(modID, modules, module_tfs, pDNA){
+  #   Check if PMN assigned TF has most targets in assigned module
+  #   Params:
+  #     modID - module ID to be checked (str)
+  #     modules - modules df
+  #     module_tfs - df of assigned module TFs returned by parse_TF()
+  #     pDNA - df of pDNA edges
+  #     
+  #     Returns:
+  #       TRUE - assigned tf has most targets in module
+  #       FALSE - assigned tf does not have most targets in module
+  
+  mod.tfs <- get_tf(modID, modules, pDNA)
+  assigned <- unique(module_tfs[module_tfs$modID==modID,])
+  
+  max.tf.idx <- which.max(mod.tfs$Freq)
+  max.tf <- mod.tfs[max.tf.idx,1]
+  return(max.tf %in% assigned)
+}
+
 ####################
 #       Main
 #
@@ -88,7 +108,32 @@ setwd("~/Dropbox/thesis_work/data/8.10_highvar_results/Module_TF_binding/")
 for (ID in modIDs){
   write_mod_binding(ID, modules, pDNA)
 }
+# Next step is for each module check that the assigned TF in PPI is
+# the TF with the most targets in the module. i.e. the max of the Freq col
+# in the df returned by get_tf(). Either keep a boolean value in a df for each
+# module or something.
 
+#Load in the stat sheet for modules and add column for TF assignment
+mod.stats <- read.table(
+  "~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/output/8.10.12_30_mods_0.1_highvar_genes_pathsizes.txt",
+  head=T, sep="\t")
+
+stat.ids <- mod.stats$moduleID
+mod.stats$correct_tf_assigned <- sapply(mod.stats$moduleID,
+                      function(id, modules, modules_tf, pDNA){
+                      check_binding(id, modules, modules_tf, pDNA)}, 
+                      modules=modules, modules_tf=modules_tf, pDNA=pDNA
+)
+
+mod.stats$correct_tf_assigned <- as.character(mod.stats$correct_tf_assigned)
+
+mod.tf.assignments <- modules_tf[!duplicated(modules_tf$moduleID),]
+colnames(mod.tf.assignments)[1] <- "moduleID"
+mod.stats <- merge(mod.stats, mod.tf.assignments)
+
+write.table(mod.stats,
+            file="~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/output/8.10.12_30_mods_0.1_highvar_genes_pathsizes.txt",
+            row.names=F, col.names=T, quote=F, sep="\t")
 
 
 
