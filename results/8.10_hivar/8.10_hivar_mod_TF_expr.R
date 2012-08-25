@@ -136,5 +136,19 @@ write.table(mod.stats,
             row.names=F, col.names=T, quote=F, sep="\t")
 
 
+# Check which modules the dosR regulon was assigned to
+
+# Load regulon membership
+setwd("~/Dropbox/thesis_work/data/")
+dosR_regulon <- toupper(read.table("known_regulons/DosR.txt")[,1])
+dosR_assignments <- modules[modules$gene %in% dosR_regulon,]
+dosR_assignments <- dosR_assignments[with(dosR_assignments, order(moduleID)),]
+write.table(dosR_assignments, "8.10_highvar_results/dosR_regulon_assignments.txt",
+            row.names=F, col.names=T, quote=F, sep="\t")
+
+dosR_counts <- as.data.frame(table(dosR_assignments$moduleID))
+colnames(dosR_counts) <- c("moduleID", "n_dosR_regulon")
+write.table(dosR_counts, "8.10_highvar_results/dosR_regulon_counts.txt",
+            row.names=F, col.names=T, quote=F, sep="\t")
 
 
