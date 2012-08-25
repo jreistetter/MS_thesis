@@ -15,7 +15,7 @@ parse_TF <- function(parse_df){
   #   
   #   Params:
   #     parse_df: df read in from the parsed txt file, split on ":". First column 
-  #               is the module ID, the second column is a tab delimted char vector
+  #             is the module ID, the second column is a tab delimted char vector
   #               of the protein pathway from module parent to TF (TF is last).
   
   out_df <- data.frame(modID=c(), tf=c())
@@ -51,6 +51,11 @@ write_mod_binding <- function(modID, mod.df, pDNA){
   close(out_f)
 }
 
+####################
+#       Main
+#
+####################
+
 #Load data
 setwd("~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/")
 
@@ -68,10 +73,22 @@ colnames(pDNA) <- c("tf", "target")
 
 modules_tf <- parse_TF(pathways)
 
+write.table(modules_tf, 
+            "~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/output/8.10_hivar_module_tfs.txt",
+            quote=F, sep="\t", row.names=F, col.names=T)
+
 modIDs <- unique(modules$moduleID)
+
 
 #For each module, write out table of TFs targetting module and also the assigned
 # TF
+
+setwd("~/Dropbox/thesis_work/data/8.10_highvar_results/Module_TF_binding/")
+
+for (ID in modIDs){
+  write_mod_binding(ID, modules, pDNA)
+}
+
 
 
 
