@@ -18,6 +18,13 @@ get_tf <- function(modID, modules, pDNA){
   return(mod.tfs.df)
 }
 
+get_parents <- function(modID, parents){
+  # Retrieve parents for a module from CPD dataframe.
+  raw <- parents[parents$moduleID==modID,2]
+  parent.genes <- unique(unlist(strsplit(raw, " ", fixed=T)))
+  return(parent.genes)
+}
+
 #pDNA funcs
 # Script containing support functions for the parsing, processing, and writing
 # of the pDNA interaction data.
