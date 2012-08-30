@@ -30,7 +30,7 @@ parse_TF <- function(parse_df){
   return(out_df)
 }
 
-write_mod_binding <- function(modID, mod.df, pDNA){
+write_mod_binding <- function(modID, mod.df, pDNA, modules.tf){
 #   Retrieves the known TF binding for a module.
 #   Writes out assigned TF and TF binding table to file
 #     
@@ -38,16 +38,20 @@ write_mod_binding <- function(modID, mod.df, pDNA){
 #       modID - module ID (str)
 #       mod.df - modules df
 #       pDNA - df of pDNA edges
-    
+#       modules.tf - df of TFs assigned to modules, from parse_TF()
+  
+  module <- get_module(modID, mod.df)
   mod.TFs <- get_tf(modID, modules, pDNA)
   mod.assigned.TF <- unique(modules_tf[modules_tf$modID==modID,2])
   fname <- paste(modID, "_tf_binding.txt", sep="")
   out_f <- file(fname, "w")
-  write("assigned TFs:", out_f)
-  write(mod.assigned.TF, out_f, sep="\t")
-  write("\n", out_f)
-  write.table(mod.TFs, out_f, append=T, quote=F, sep="\t",
+  write(paste("assigned TF:\t", mod.assigned.TF), out_f)
+  write(paste("size:\t", length(module)), out_f)
+  write.table(mod.TFs[,1:2], out_f, append=T, quote=F, sep="\t",
               row.names=F, col.names=F)
+  
+  n_no_mod <- sum(!(module %in% pDNA$target))
+  write(paste("None assigned", n_no_mod, sep="\t"), out_f)
   close(out_f)
 }
 
