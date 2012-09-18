@@ -96,10 +96,16 @@ pDNA <- pDNA.raw[,1:2]
 colnames(pDNA) <- c("tf", "target")
 
 modules_tf <- parse_TF(pathways)
+modules_tf <- modules_tf[!duplicated(modules_tf$modID),]
 
 write.table(modules_tf, 
             "~/Dropbox/thesis_work/PMN_output/8.10.12_30_mods_0.1_highvar/output/8.10_hivar_module_tfs.txt",
             quote=F, sep="\t", row.names=F, col.names=T)
+
+tf_count <- as.data.frame(table(modules_tf$tf))
+write.table(tf_count, 
+"~/Dropbox/thesis_work/data/8.10_highvar_results/tables/tf_assign_count.txt",
+            quote=F, sep="\t", row.names=F)
 
 modIDs <- unique(modules$moduleID)
 
