@@ -88,6 +88,31 @@ for (ID in modIDs){
 
 close(out_f)
 
+## Write out the pathways again, but with no links to the modules
+
+setwd("~/Dropbox/thesis_work/data/8.10_highvar_results/cytoscape/")
+out_f <- file("PMN_pathways_PPI_only.sif", "w")
+write("source\tinteraction\ttarget", out_f)
+
+for (ID in modIDs){
+  # Get all pathways associated with module
+  mod.paths <- paths.raw[paths.raw$moduleID==ID,]
+  
+  for (i in 1:nrow(mod.paths)){
+    # Loop through each pathway
+    path <- unlist(strsplit(mod.paths[i,2], "\t", fixed=T))
+    path.length <- length(path)
+    # Write out edges for pathway
+    for (i in 1:(path.length-1)){
+      line <- paste(path[i], "pp", path[i+1], sep="\t")
+      write(line, out_f)
+    }
+
+  }
+}
+
+close(out_f)
+
 # Write out a node attribute file with module or protein attribute
 
 # Read the network edges back in to get list of all nodes
